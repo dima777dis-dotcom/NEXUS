@@ -10,6 +10,7 @@ export default function AuthGate() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<Step>('contacts')
+  const [isLogin, setIsLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
@@ -48,7 +49,7 @@ export default function AuthGate() {
       })
       if (error) throw error
       setStep('code')
-      setNotice('Код отправлен на вашу почту. Проверьте входящие и папку «Спам».')
+      setNotice(isLogin ? 'Код для входа отправлен на вашу почту.' : 'Код отправлен на вашу почту. Проверьте входящие и папку «Спам».')
     } catch (e) { setError(e instanceof Error ? e.message : 'Не удалось отправить код.') }
     finally { setBusy(false) }
   }
@@ -64,7 +65,7 @@ export default function AuthGate() {
       if (error) throw error
       setSession(data.session)
       setStep('profile')
-      setNotice('Почта подтверждена. Теперь создайте профиль.')
+      setNotice(isLogin ? 'Вход выполнен. Добро пожаловать обратно!' : 'Почта подтверждена. Теперь создайте профиль.')
     } catch (e) { setError(e instanceof Error ? e.message : 'Код не подошёл. Проверьте его и попробуйте ещё раз.') }
     finally { setBusy(false) }
   }
@@ -100,7 +101,7 @@ export default function AuthGate() {
     setBusy(true); setError(''); setNotice('')
     try {
       if (!supabase) throw new Error('Сервис авторизации не настроен.')
-      const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: true, data: { phone_number: phone.trim() } } })
+      const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: isLogin ? { shouldCreateUser: false } : { shouldCreateUser: true, data: { phone_number: phone.trim() } } })
       if (error) throw error
       setNotice('Новый код отправлен. Проверьте почту.')
     } catch (e) { setError(e instanceof Error ? e.message : 'Не удалось отправить код.') }
@@ -118,12 +119,12 @@ export default function AuthGate() {
       <div className="auth-progress" aria-label={`Шаг ${stepNumber} из 3`}><span className="active"/><span className={stepNumber >= 2 ? 'active' : ''}/><span className={stepNumber >= 3 ? 'active' : ''}/></div>
       <div className="auth-step-label">ШАГ {stepNumber} ИЗ 3 · {step === 'contacts' ? 'КОНТАКТЫ' : step === 'code' ? 'ПОДТВЕРЖДЕНИЕ' : 'ВАШ ПРОФИЛЬ'}</div>
       <div className="auth-badge"><Sparkles size={15}/> ВАШЕ ПРОСТРАНСТВО ДЛЯ ОБЩЕНИЯ</div>
-      <h1>{step === 'contacts' ? 'Добро пожаловать.' : step === 'code' ? 'Проверьте почту.' : 'Создадим профиль.'}</h1>
-      <p className="auth-lead">{step === 'contacts' ? 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.' : step === 'code' ? `Мы отправили шестизначный код на ${email}. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
+      <h1>{step === 'contacts' ? (isLogin ? 'С возвращением.' : 'Добро пожаловать.') : step === 'code' ? 'Проверьте почту.' : 'Создадим профиль.'}</h1>
+      <p className="auth-lead">{step === 'contacts' ? '{isLogin ? 'Укажите электронную почту, привязанную к вашему аккаунту. Мы отправим код для входа.' : 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.'}' : step === 'code' ? `Мы отправили шестизначный код на ${email}. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
       {step === 'contacts' && <form onSubmit={sendCode} className="auth-form">
         <label>Номер телефона<div className="auth-input"><Phone/><input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+7 999 123-45-67" required/></div><small>Укажите номер с кодом страны, например +7 или +1</small></label>
         <label>Электронная почта<div className="auth-input"><Mail/><input type="email" inputMode="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></div></label>
-        <button className="auth-submit" disabled={busy}>{busy ? 'Отправляем код…' : 'Получить код'} <ArrowRight/></button>
+        <button className="auth-submit" disabled={busy}>{busy ? 'Отправляем код…' : (isLogin ? 'Войти по коду' : 'Получить код')} <ArrowRight/></button>
       </form>}
       {step === 'code' && <form onSubmit={verifyCode} className="auth-form">
         <label>Код из письма<div className="auth-input auth-code-input"><ShieldCheck/><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required/></div></label>
@@ -138,7 +139,7 @@ export default function AuthGate() {
       </form>}
       {error && <div className="auth-error" role="alert">{error}</div>}
       {notice && <div className="auth-notice" role="status">{notice}</div>}
-      <div className="auth-foot"><ShieldCheck size={15}/> {step === 'contacts' ? 'Код подтверждения приходит на электронную почту.' : step === 'code' ? 'Никому не сообщайте код подтверждения.' : 'Ваши данные профиля можно будет изменить позже.'}</div>
+      <div className="auth-foot"><ShieldCheck size={15}/> {step === 'contacts' ? (isLogin ? 'Войдите с помощью одноразового кода из письма.' : 'Код подтверждения приходит на электронную почту.') : step === 'code' ? 'Никому не сообщайте код подтверждения.' : 'Ваши данные профиля можно будет изменить позже.'}</div>
     </section>
     <div className="auth-bottom">NEXUS · YOUR WORLD. YOUR CONNECTION.</div>
   </main>
