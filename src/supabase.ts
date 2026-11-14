@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+// Publishable key is intended for browser use; database access is restricted by RLS.
+const url = 'https://ehqoawymfadhlyamxaei.supabase.co'
+const key = 'sb_publishable_DYjtvq--7sM6jwXpEz85aQ_q1y82_bo'
 
-export const supabaseReady = Boolean(url && key)
-export const supabase = supabaseReady
-  ? createClient(url!, key!, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
-  : null
+export const supabase = createClient(url, key, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+})
