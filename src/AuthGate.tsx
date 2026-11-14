@@ -8,6 +8,8 @@ type Step = 'contacts' | 'code' | 'profile'
 
 export default function AuthGate() {
   const [session, setSession] = useState<any>(null)
+  const [demoProfile, setDemoProfile] = useState<any>(null)
+  const [showWelcome, setShowWelcome] = useState(true)
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<Step>('contacts')
   const [isLogin, setIsLogin] = useState(false)
@@ -21,6 +23,9 @@ export default function AuthGate() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const savedDemo = localStorage.getItem('nexus_demo_profile')
+    if (savedDemo) { try { setDemoProfile(JSON.parse(savedDemo)) } catch { localStorage.removeItem('nexus_demo_profile') } }
+    const splashTimer = window.setTimeout(() => setShowWelcome(false), 2200)
     if (!supabase) { setLoading(false); return }
     supabase.auth.getSession().then(({ data }) => {
       const current = data.session
@@ -33,12 +38,13 @@ export default function AuthGate() {
       setSession(next)
       if (next) setStep('profile')
     })
-    return () => data.subscription.unsubscribe()
+    return () => { data.subscription.unsubscribe(); window.clearTimeout(splashTimer) }
   }, [])
 
   const sendCode = async (event: FormEvent) => {
     event.preventDefault()
     setBusy(true); setError(''); setNotice('')
+    setStep('code'); setNotice('Демо-режим: используйте код 12345. Письмо отправлять не нужно.'); setBusy(false); return
     if (!supabase) { setError('Сервис авторизации не настроен.'); setBusy(false); return }
     try {
       const cleanPhone = phone.trim()
@@ -60,7 +66,15 @@ export default function AuthGate() {
     try {
       if (!supabase) throw new Error('Сервис авторизации не настроен.')
       const token = code.replace(/\D/g, '')
-      if (token.length !== 6) throw new Error('Введите шестизначный код из письма.')
+      if (token !== '12345') throw new Error('Неверный код. Для демо используйте 12345.')
+      if (isLogin) {
+        const saved = localStorage.getItem('nexus_demo_profile')
+        if (!saved) throw new Error('Аккаунт не найден на этом устройстве. Сначала зарегистрируйтесь.')
+        const profile = JSON.parse(saved)
+        if (profile.email !== email.trim().toLowerCase()) throw new Error('Аккаунт с этой почтой не найден на этом устройстве.')
+        setDemoProfile(profile); setBusy(false); return
+      }
+      setStep('profile'); setNotice('Код принят. Теперь создайте профиль.'); setBusy(false); return
       const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'email' })
       if (error) throw error
       setSession(data.session)
@@ -74,10 +88,12 @@ export default function AuthGate() {
     event.preventDefault()
     setBusy(true); setError(''); setNotice('')
     try {
-      if (!supabase) throw new Error('Сервис авторизации не настроен.')
       const cleanUsername = username.trim().replace(/^@/, '')
       if (displayName.trim().length < 2) throw new Error('Имя должно содержать хотя бы 2 символа.')
       if (!/^[a-zA-Z0-9_]{3,24}$/.test(cleanUsername)) throw new Error('Никнейм: 3–24 символа, латиница, цифры и _.')
+      const profile = { email: email.trim().toLowerCase(), phone: phone.trim(), displayName: displayName.trim(), username: cleanUsername }
+      localStorage.setItem('nexus_demo_profile', JSON.stringify(profile))
+      setDemoProfile(profile); setBusy(false); return
       const { error } = await supabase.auth.updateUser({
         data: { display_name: displayName.trim(), username: cleanUsername, phone_number: phone.trim(), nexus_profile_complete: true }
       })
@@ -108,7 +124,9 @@ export default function AuthGate() {
     finally { setBusy(false) }
   }
 
+  if (showWelcome) return <main className="nexus-welcome"><div className="nexus-welcome-mark">N</div><h1>Добро пожаловать в NEXUS</h1><p>Твоё пространство для общения</p></main>
   if (loading) return <div className="auth-loading">NEXUS</div>
+  if (demoProfile) return <><div className="auth-session-bar"><span><ShieldCheck size={15}/> Демо-режим · {demoProfile.displayName}</span><button onClick={() => { localStorage.removeItem('nexus_demo_profile'); setDemoProfile(null); setIsLogin(true); setStep('contacts') }}>Выйти</button></div><App /></>
   if (session?.user?.user_metadata?.nexus_profile_complete) return <><div className="auth-session-bar"><span><ShieldCheck size={15}/> Вы вошли в NEXUS</span><button onClick={() => supabase?.auth.signOut()}>Выйти</button></div><App /></>
 
   const stepNumber = step === 'contacts' ? 1 : step === 'code' ? 2 : 3
@@ -120,14 +138,14 @@ export default function AuthGate() {
       <div className="auth-step-label">ШАГ {stepNumber} ИЗ 3 · {step === 'contacts' ? 'КОНТАКТЫ' : step === 'code' ? 'ПОДТВЕРЖДЕНИЕ' : 'ВАШ ПРОФИЛЬ'}</div>
       <div className="auth-badge"><Sparkles size={15}/> ВАШЕ ПРОСТРАНСТВО ДЛЯ ОБЩЕНИЯ</div>
       <h1>{step === 'contacts' ? (isLogin ? 'С возвращением.' : 'Добро пожаловать.') : step === 'code' ? 'Проверьте почту.' : 'Создадим профиль.'}</h1>
-      <p className="auth-lead">{step === 'contacts' ? (isLogin ? 'Укажите электронную почту, привязанную к вашему аккаунту. Мы отправим код для входа.' : 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.') : step === 'code' ? `Мы отправили шестизначный код на ${email}. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
+      <p className="auth-lead">{step === 'contacts' ? (isLogin ? 'Укажите электронную почту, привязанную к вашему аккаунту. Мы отправим код для входа.' : 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.') : step === 'code' ? `Демо-код: 12345. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
       {step === 'contacts' && <form onSubmit={sendCode} className="auth-form">
         {!isLogin && <label>Номер телефона<div className="auth-input"><Phone/><input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+7 999 123-45-67" required/></div><small>Укажите номер с кодом страны, например +7 или +1</small></label>}
         <label>Электронная почта<div className="auth-input"><Mail/><input type="email" inputMode="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></div></label>
         <button className="auth-submit" disabled={busy}>{busy ? 'Отправляем код…' : (isLogin ? 'Войти по коду' : 'Получить код')} <ArrowRight/></button>
       </form>}
       {step === 'code' && <form onSubmit={verifyCode} className="auth-form">
-        <label>Код из письма<div className="auth-input auth-code-input"><ShieldCheck/><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="000000" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required/></div></label>
+        <label>Код из письма<div className="auth-input auth-code-input"><ShieldCheck/><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,'').slice(0,5))} placeholder="12345" inputMode="numeric" autoComplete="one-time-code" maxLength={5} required/></div></label>
         <button className="auth-submit" disabled={busy}>{busy ? 'Проверяем…' : 'Подтвердить почту'} <ArrowRight/></button>
         <button type="button" className="auth-secondary" onClick={resendCode} disabled={busy}><RefreshCw size={16}/> Отправить код ещё раз</button>
         <button type="button" className="auth-text-button" onClick={()=>{setStep('contacts');setCode('');setError('');setNotice('')}}>Изменить почту или номер</button>
@@ -139,7 +157,7 @@ export default function AuthGate() {
       </form>}
       {error && <div className="auth-error" role="alert">{error}</div>}
       {notice && <div className="auth-notice" role="status">{notice}</div>}
-      <div className="auth-foot"><ShieldCheck size={15}/> {step === 'contacts' ? (isLogin ? 'Войдите с помощью одноразового кода из письма.' : 'Код подтверждения приходит на электронную почту.') : step === 'code' ? 'Никому не сообщайте код подтверждения.' : 'Ваши данные профиля можно будет изменить позже.'}</div>
+      <div className="auth-foot"><ShieldCheck size={15}/> {step === 'contacts' ? (isLogin ? 'Войдите с помощью одноразового кода из письма.' : 'Демо-код для проверки регистрации: 12345.') : step === 'code' ? 'Никому не сообщайте код подтверждения.' : 'Ваши данные профиля можно будет изменить позже.'}</div>
     </section>
     <div className="auth-bottom">NEXUS · YOUR WORLD. YOUR CONNECTION.</div>
   </main>
