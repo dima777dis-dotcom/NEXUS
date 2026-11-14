@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Archive, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
   ChevronRight, CircleHelp, Compass, FileImage, Hash, LockKeyhole,
@@ -46,12 +46,25 @@ function App() {
   const [activeChat, setActiveChat] = useState<Chat | null>(null)
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
-  const [sentMessages, setSentMessages] = useState<string[]>([])
-  const [theme, setTheme] = useState<'dark' | 'light' | 'graphite'>('dark')
+  const [messagesByChat, setMessagesByChat] = useState<Record<number, string[]>>(() => {
+    try { return JSON.parse(localStorage.getItem('nexus-demo-messages') || '{}') } catch { return {} }
+  })
+  const sentMessages = activeChat ? (messagesByChat[activeChat.id] || []) : []
+  const [theme, setTheme] = useState<'dark' | 'light' | 'graphite'>(() => {
+    const saved = localStorage.getItem('nexus-demo-theme')
+    return saved === 'light' || saved === 'graphite' ? saved : 'dark'
+  })
+  const [subscriptions, setSubscriptions] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('nexus-demo-subscriptions') || '[]') } catch { return [] }
+  })
   const [showImport, setShowImport] = useState(false)
   const [fileName, setFileName] = useState('')
   const [aiPrompt, setAiPrompt] = useState('')
   const [aiAnswer, setAiAnswer] = useState('Привет! Я NEXUS AI. Я помогу тебе разобраться в идеях, написать сообщение или кратко пересказать переписку. С чего начнём?')
+
+  useEffect(() => { localStorage.setItem('nexus-demo-messages', JSON.stringify(messagesByChat)) }, [messagesByChat])
+  useEffect(() => { localStorage.setItem('nexus-demo-theme', theme) }, [theme])
+  useEffect(() => { localStorage.setItem('nexus-demo-subscriptions', JSON.stringify(subscriptions)) }, [subscriptions])
 
   const filteredChats = useMemo(() => initialChats.filter(chat =>
     (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
@@ -59,13 +72,20 @@ function App() {
 
   const sendMessage = () => {
     if (!message.trim()) return
-    setSentMessages(prev => [...prev, message.trim()])
+    if (activeChat) setMessagesByChat(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id] || []), message.trim()] }))
     setMessage('')
   }
 
   const askAI = () => {
     if (!aiPrompt.trim()) return
-    setAiAnswer('Демо-режим: запрос принят. После подключения защищённого AI API здесь появится настоящий ответ NEXUS AI. Сейчас мы проверяем интерфейс и взаимодействие.')
+    const q = aiPrompt.trim().toLowerCase()
+    let answer = 'Я пока работаю в локальном демо-режиме. Попробуй попросить меня написать сообщение, придумать идею, перевести фразу или кратко пересказать текст.'
+    if (/привет|здравствуй|hello/.test(q)) answer = 'Привет! Рад видеть тебя в NEXUS. Чем займёмся сегодня?'
+    else if (/сообщен|письм|ответ/.test(q)) answer = 'Вот вариант: «Привет! Спасибо, что написал. Я всё посмотрел — давай обсудим детали и выберем удобное время». Могу сделать тон дружелюбнее или официальнее.'
+    else if (/иде|придум|стартап|проект/.test(q)) answer = 'Идея для старта: выбери одну конкретную проблему пользователей, сделай минимальное решение за неделю и покажи его пяти потенциальным клиентам. Затем улучшай продукт по их обратной связи.'
+    else if (/перевед|translate/.test(q)) answer = 'Напиши текст и укажи язык перевода — в этой демо-версии я покажу примерный сценарий работы.'
+    else if (/кратко|сумм|перескаж/.test(q)) answer = 'Пришли текст переписки, и я помогу выделить главную мысль, решения и следующие действия. В текущем демо я не читаю ваши чаты автоматически.'
+    setAiAnswer(answer)
     setAiPrompt('')
   }
 
@@ -115,7 +135,7 @@ function App() {
           </div>
           <div className="section-heading"><div><h2>Ваши чаты</h2><p>Недавние переписки</p></div><button className="primary-button small"><Plus size={16} /> Новый чат</button></div>
           <div className="chat-list">
-            {filteredChats.map(chat => <button className="chat-row" key={chat.id} onClick={() => { setActiveChat(chat); setSentMessages([]) }}>
+            {filteredChats.map(chat => <button className="chat-row" key={chat.id} onClick={() => { setActiveChat(chat) }}>
               <Avatar name={chat.name} initials={chat.initials} color={chat.color} online={chat.online} />
               <div className="chat-info"><div className="chat-name">{chat.name}{chat.verified && <span className="verified"><Check size={11} /></span>}</div><p>{chat.message}</p></div>
               <div className="chat-meta"><time>{chat.time}</time>{chat.unread && <span className="unread">{chat.unread}</span>}</div>
@@ -150,13 +170,13 @@ function App() {
         {tab === 'channels' && <section className="content-area">
           <div className="section-heading"><div><h2>Открывайте новое</h2><p>Каналы по вашим интересам</p></div><button className="primary-button small"><Plus size={16} /> Создать</button></div>
           <div className="channel-feature"><div className="feature-icon"><Hash size={25} /></div><div><span className="eyebrow">NEXUS CHANNELS</span><h2>Ваши идеи находят аудиторию.</h2><p>Подписывайтесь на интересное и делитесь своим.</p></div></div>
-          <div className="channel-list">{channels.map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button">Открыть</button></div>)}</div>
+          <div className="channel-list">{channels.map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button" onClick={() => setSubscriptions(prev => prev.includes(channel.tag) ? prev.filter(x => x !== channel.tag) : [...prev, channel.tag])}>{subscriptions.includes(channel.tag) ? 'Вы подписаны' : 'Подписаться'}</button></div>)}</div>
         </section>}
 
         {tab === 'ai' && <section className="content-area ai-area">
           <div className="ai-intro"><div className="ai-symbol"><Sparkles size={29} /></div><span className="eyebrow">YOUR PERSONAL INTELLIGENCE</span><h2>Думайте шире.<br /><em>Создавайте больше.</em></h2><p>NEXUS AI — помощник, который будет рядом в ваших разговорах и идеях.</p></div>
           <div className="ai-chat-card"><div className="ai-message"><div className="ai-mini"><Sparkles size={15} /></div><p>{aiAnswer}</p></div><div className="ai-suggestions"><button onClick={() => setAiPrompt('Помоги написать сообщение')}>Помоги написать</button><button onClick={() => setAiPrompt('Кратко перескажи переписку')}>Суммируй чат</button><button onClick={() => setAiPrompt('Переведи текст')}>Перевести</button></div><div className="ai-input"><input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} onKeyDown={e => e.key === 'Enter' && askAI()} placeholder="Спросите NEXUS AI..." /><button className="send-button" onClick={askAI}><Send size={17} /></button></div></div>
-          <p className="demo-caption">Демонстрационный режим · AI API ещё не подключён</p>
+          <p className="demo-caption">Локальный сценарный режим · без API и платных запросов</p>
         </section>}
 
         {tab === 'settings' && <section className="content-area">
