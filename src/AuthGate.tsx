@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { LockKeyhole, Mail, Sparkles, UserRound, ArrowRight, ShieldCheck } from 'lucide-react'
-import { supabase, supabaseReady } from './supabase'
+import { supabase } from './supabase'
 import App from './App'
 
 export default function AuthGate() {
