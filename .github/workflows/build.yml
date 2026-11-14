@@ -1,10 +1,18 @@
-name: Build NEXUS
+name: Build and deploy NEXUS demo
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -16,7 +24,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
       - name: Install dependencies
         run: npm install
-      - name: Typecheck and build
+      - name: Build demo
         run: npm run build
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
