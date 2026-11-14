@@ -45,7 +45,7 @@ export default function AuthGate() {
       if (!/^\+[1-9]\d{7,14}$/.test(cleanPhone)) throw new Error('Введите номер в международном формате, например +79991234567.')
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: true, data: { phone_number: cleanPhone } }
+        options: isLogin ? { shouldCreateUser: false } : { shouldCreateUser: true, data: { phone_number: cleanPhone } }
       })
       if (error) throw error
       setStep('code')
@@ -120,7 +120,7 @@ export default function AuthGate() {
       <div className="auth-step-label">ШАГ {stepNumber} ИЗ 3 · {step === 'contacts' ? 'КОНТАКТЫ' : step === 'code' ? 'ПОДТВЕРЖДЕНИЕ' : 'ВАШ ПРОФИЛЬ'}</div>
       <div className="auth-badge"><Sparkles size={15}/> ВАШЕ ПРОСТРАНСТВО ДЛЯ ОБЩЕНИЯ</div>
       <h1>{step === 'contacts' ? (isLogin ? 'С возвращением.' : 'Добро пожаловать.') : step === 'code' ? 'Проверьте почту.' : 'Создадим профиль.'}</h1>
-      <p className="auth-lead">{step === 'contacts' ? {isLogin ? 'Укажите электронную почту, привязанную к вашему аккаунту. Мы отправим код для входа.' : 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.'} : step === 'code' ? `Мы отправили шестизначный код на ${email}. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
+      <p className="auth-lead">{step === 'contacts' ? (isLogin ? 'Укажите электронную почту, привязанную к вашему аккаунту. Мы отправим код для входа.' : 'Укажите номер телефона и электронную почту. На почту отправим одноразовый код.') : step === 'code' ? `Мы отправили шестизначный код на ${email}. Введите его ниже.` : 'Придумайте имя и уникальный никнейм. Так вас смогут найти в NEXUS.'}</p>
       {step === 'contacts' && <form onSubmit={sendCode} className="auth-form">
         {!isLogin && <label>Номер телефона<div className="auth-input"><Phone/><input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+7 999 123-45-67" required/></div><small>Укажите номер с кодом страны, например +7 или +1</small></label>}
         <label>Электронная почта<div className="auth-input"><Mail/><input type="email" inputMode="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></div></label>
