@@ -44,19 +44,14 @@ export default function AuthGate() {
   const sendCode = async (event: FormEvent) => {
     event.preventDefault()
     setBusy(true); setError(''); setNotice('')
-    setStep('code'); setNotice('Демо-режим: используйте код 12345. Письмо отправлять не нужно.'); setBusy(false); return
-    if (!supabase) { setError('Сервис авторизации не настроен.'); setBusy(false); return }
     try {
-      const cleanPhone = phone.trim()
-      if (!/^\+[1-9]\d{7,14}$/.test(cleanPhone)) throw new Error('Введите номер в международном формате, например +79991234567.')
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: isLogin ? { shouldCreateUser: false } : { shouldCreateUser: true, data: { phone_number: cleanPhone } }
-      })
-      if (error) throw error
+      const cleanEmail = email.trim().toLowerCase()
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) throw new Error('Введите корректный адрес электронной почты.')
+      if (!isLogin && !/^\\+[1-9]\\d{7,14}$/.test(phone.trim().replace(/[\\s()-]/g, ''))) throw new Error('Введите номер в международном формате, например +79991234567.')
+      setEmail(cleanEmail)
       setStep('code')
-      setNotice(isLogin ? 'Код для входа отправлен на вашу почту.' : 'Код отправлен на вашу почту. Проверьте входящие и папку «Спам».')
-    } catch (e) { setError(e instanceof Error ? e.message : 'Не удалось отправить код.') }
+      setNotice('Демо-режим: используйте код 12345. Письмо отправлять не нужно.')
+    } catch (e) { setError(e instanceof Error ? e.message : 'Проверьте введённые данные.') }
     finally { setBusy(false) }
   }
 
@@ -64,22 +59,17 @@ export default function AuthGate() {
     event.preventDefault()
     setBusy(true); setError(''); setNotice('')
     try {
-      if (!supabase) throw new Error('Сервис авторизации не настроен.')
-      const token = code.replace(/\D/g, '')
-      if (token !== '12345') throw new Error('Неверный код. Для демо используйте 12345.')
+      if (code.replace(/\\D/g, '') !== '12345') throw new Error('Неверный код. Для демо используйте 12345.')
       if (isLogin) {
         const saved = localStorage.getItem('nexus_demo_profile')
         if (!saved) throw new Error('Аккаунт не найден на этом устройстве. Сначала зарегистрируйтесь.')
         const profile = JSON.parse(saved)
         if (profile.email !== email.trim().toLowerCase()) throw new Error('Аккаунт с этой почтой не найден на этом устройстве.')
-        setDemoProfile(profile); setBusy(false); return
+        setDemoProfile(profile)
+        return
       }
-      setStep('profile'); setNotice('Код принят. Теперь создайте профиль.'); setBusy(false); return
-      const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'email' })
-      if (error) throw error
-      setSession(data.session)
       setStep('profile')
-      setNotice(isLogin ? 'Вход выполнен. Добро пожаловать обратно!' : 'Почта подтверждена. Теперь создайте профиль.')
+      setNotice('Код принят. Теперь создайте профиль.')
     } catch (e) { setError(e instanceof Error ? e.message : 'Код не подошёл. Проверьте его и попробуйте ещё раз.') }
     finally { setBusy(false) }
   }
@@ -93,35 +83,14 @@ export default function AuthGate() {
       if (!/^[a-zA-Z0-9_]{3,24}$/.test(cleanUsername)) throw new Error('Никнейм: 3–24 символа, латиница, цифры и _.')
       const profile = { email: email.trim().toLowerCase(), phone: phone.trim(), displayName: displayName.trim(), username: cleanUsername }
       localStorage.setItem('nexus_demo_profile', JSON.stringify(profile))
-      setDemoProfile(profile); setBusy(false); return
-      const { error } = await supabase.auth.updateUser({
-        data: { display_name: displayName.trim(), username: cleanUsername, phone_number: phone.trim(), nexus_profile_complete: true }
-      })
-      if (error) throw error
-      const { data: userData } = await supabase.auth.getUser()
-      if (userData.user) {
-        const { error: profileError } = await supabase.from('profiles').upsert({
-          id: userData.user.id,
-          username: cleanUsername,
-          display_name: displayName.trim()
-        }, { onConflict: 'id' })
-        if (profileError) throw profileError
-      }
-      const { data } = await supabase.auth.getSession()
-      setSession(data.session)
+      setDemoProfile(profile)
     } catch (e) { setError(e instanceof Error ? e.message : 'Не удалось сохранить профиль.') }
     finally { setBusy(false) }
   }
 
   const resendCode = async () => {
-    setBusy(true); setError(''); setNotice('')
-    try {
-      if (!supabase) throw new Error('Сервис авторизации не настроен.')
-      const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: isLogin ? { shouldCreateUser: false } : { shouldCreateUser: true, data: { phone_number: phone.trim() } } })
-      if (error) throw error
-      setNotice('Новый код отправлен. Проверьте почту.')
-    } catch (e) { setError(e instanceof Error ? e.message : 'Не удалось отправить код.') }
-    finally { setBusy(false) }
+    setNotice('Демо-режим: повторная отправка не требуется. Используйте код 12345.')
+    setError('')
   }
 
   if (showWelcome) return <main className="nexus-welcome"><div className="nexus-welcome-mark">N</div><h1>Добро пожаловать в NEXUS</h1><p>Твоё пространство для общения</p></main>
