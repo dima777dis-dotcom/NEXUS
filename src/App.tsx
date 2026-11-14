@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import {
-  Archive, ArrowDown, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
-  ChevronRight, CircleHelp, Compass, FileImage, Hash, Image, LockKeyhole,
+  Archive, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
+  ChevronRight, CircleHelp, Compass, FileImage, Hash, LockKeyhole,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send,
-  Settings, ShieldCheck, Smile, Sparkles, Users, Video, X
+  Settings, ShieldCheck, Sparkles, Users, Video, X
 } from 'lucide-react'
 
 type Tab = 'chats' | 'channels' | 'ai' | 'settings' | 'profile'
