@@ -44,3 +44,10 @@
  .auth-input{height:60px}
  .auth-submit{height:60px}
 }
+
+.nexus-welcome{min-height:100svh;background:radial-gradient(ellipse at 50% 42%,#142c50 0%,#080d17 62%);color:#eef4ff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:'DM Sans',sans-serif;animation:nexusFadeIn .7s ease both}
+.nexus-welcome-mark{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#70b3ff,#286de0);color:white;font:800 58px Manrope;box-shadow:0 0 0 12px #438df018,0 0 70px #3478e566;animation:nexusMarkIn 1s cubic-bezier(.2,.8,.2,1) both}
+.nexus-welcome h1{font:800 clamp(25px,6vw,38px) Manrope;margin:30px 0 8px;letter-spacing:-.8px}
+.nexus-welcome p{font-size:15px;color:#91a8c8;margin:0;animation:nexusFadeIn 1s .35s both}
+@keyframes nexusFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes nexusMarkIn{0%{opacity:0;transform:scale(.55) rotate(-18deg)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
