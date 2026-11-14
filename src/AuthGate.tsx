@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { LockKeyhole, Mail, Sparkles, UserRound, ArrowRight, ShieldCheck } from 'lucide-react'
 import { supabase } from './supabase'
 import App from './App'
