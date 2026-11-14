@@ -1,0 +1,196 @@
+import { useMemo, useState } from 'react'
+import {
+  Archive, ArrowDown, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
+  ChevronRight, CircleHelp, Compass, FileImage, Hash, Image, LockKeyhole,
+  MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send,
+  Settings, ShieldCheck, Smile, Sparkles, Users, Video, X
+} from 'lucide-react'
+
+type Tab = 'chats' | 'channels' | 'ai' | 'settings' | 'profile'
+type Chat = {
+  id: number
+  name: string
+  handle: string
+  message: string
+  time: string
+  unread?: number
+  online?: boolean
+  color: string
+  initials: string
+  verified?: boolean
+}
+
+const initialChats: Chat[] = [
+  { id: 1, name: 'Александр', handle: '@alexander', message: 'Кстати, я посмотрел твой проект', time: '12:38', unread: 2, online: true, color: 'blue', initials: 'А' },
+  { id: 2, name: 'Мария', handle: '@maria_v', message: 'Отправила фотографии ✨', time: '11:52', unread: 1, color: 'violet', initials: 'М' },
+  { id: 3, name: 'NEXUS Team', handle: '3 участника', message: 'Ты: Отлично, продолжаем!', time: 'Вчера', color: 'cyan', initials: 'N', verified: true },
+  { id: 4, name: 'Даниил', handle: '@dan_dev', message: 'Голосовое сообщение', time: 'Вчера', color: 'orange', initials: 'Д' },
+  { id: 5, name: 'Екатерина', handle: '@katya', message: 'Спасибо большое ❤️', time: 'Пн', color: 'pink', initials: 'Е' },
+  { id: 6, name: 'Илья', handle: '@ilya_works', message: 'Договорились', time: 'Вс', color: 'green', initials: 'И' },
+]
+
+const channels = [
+  { name: 'NEXUS Updates', tag: '@nexus_updates', desc: 'Новости и обновления проекта', count: '12.8K', color: 'blue', initials: 'N' },
+  { name: 'Design Space', tag: '@designspace', desc: 'Дизайн, интерфейсы и вдохновение', count: '8.4K', color: 'violet', initials: 'D' },
+  { name: 'Technology Now', tag: '@technow', desc: 'Технологии, AI и будущее', count: '24.1K', color: 'cyan', initials: 'T' },
+]
+
+function Avatar({ name, color, initials, online, size = 'normal' }: { name: string; color: string; initials: string; online?: boolean; size?: 'normal' | 'large' }) {
+  return <div className={`avatar avatar-${color} ${size === 'large' ? 'avatar-large' : ''}`} aria-label={name}>
+    <span>{initials}</span>{online && <i className="online-dot" />}
+  </div>
+}
+
+function App() {
+  const [tab, setTab] = useState<Tab>('chats')
+  const [activeChat, setActiveChat] = useState<Chat | null>(null)
+  const [query, setQuery] = useState('')
+  const [message, setMessage] = useState('')
+  const [sentMessages, setSentMessages] = useState<string[]>([])
+  const [theme, setTheme] = useState<'dark' | 'light' | 'graphite'>('dark')
+  const [showImport, setShowImport] = useState(false)
+  const [fileName, setFileName] = useState('')
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiAnswer, setAiAnswer] = useState('Привет! Я NEXUS AI. Я помогу тебе разобраться в идеях, написать сообщение или кратко пересказать переписку. С чего начнём?')
+
+  const filteredChats = useMemo(() => initialChats.filter(chat =>
+    (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
+  ), [query])
+
+  const sendMessage = () => {
+    if (!message.trim()) return
+    setSentMessages(prev => [...prev, message.trim()])
+    setMessage('')
+  }
+
+  const askAI = () => {
+    if (!aiPrompt.trim()) return
+    setAiAnswer('Демо-режим: запрос принят. После подключения защищённого AI API здесь появится настоящий ответ NEXUS AI. Сейчас мы проверяем интерфейс и взаимодействие.')
+    setAiPrompt('')
+  }
+
+  const title = tab === 'chats' ? 'Сообщения' : tab === 'channels' ? 'Каналы' : tab === 'ai' ? 'NEXUS AI' : tab === 'settings' ? 'Настройки' : 'Профиль'
+
+  return (
+    <div className={`app theme-${theme}`}>
+      <aside className="sidebar">
+        <div className="brand-row">
+          <div className="brand-mark">N</div>
+          <div className="brand-copy"><strong>NEXUS</strong><span>PRIVATE MESSENGER</span></div>
+          <button className="icon-button sidebar-more" aria-label="Дополнительно"><MoreHorizontal size={20} /></button>
+        </div>
+        <div className="sidebar-search"><Search size={17} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Поиск" /></div>
+        <div className="side-label">РАЗДЕЛЫ</div>
+        <nav className="nav-list">
+          <NavButton active={tab === 'chats'} icon={<MessageCircle />} label="Чаты" count="6" onClick={() => { setTab('chats'); setActiveChat(null) }} />
+          <NavButton active={tab === 'channels'} icon={<Compass />} label="Каналы" onClick={() => { setTab('channels'); setActiveChat(null) }} />
+          <NavButton active={tab === 'ai'} icon={<Sparkles />} label="NEXUS AI" onClick={() => { setTab('ai'); setActiveChat(null) }} />
+        </nav>
+        <div className="side-label side-label-spaced">ЛИЧНОЕ</div>
+        <nav className="nav-list">
+          <NavButton active={tab === 'settings'} icon={<Settings />} label="Настройки" onClick={() => { setTab('settings'); setActiveChat(null) }} />
+          <NavButton active={tab === 'profile'} icon={<Users />} label="Профиль" onClick={() => { setTab('profile'); setActiveChat(null) }} />
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="user-mini"><Avatar name="Ваш профиль" initials="D" color="blue" /><div><b>Ваш профиль</b><span>@yourname</span></div><ChevronDown size={16} /></div>
+          <div className="privacy-note"><ShieldCheck size={15} /><span>Ваше пространство под контролем</span></div>
+        </div>
+      </aside>
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div><div className="eyebrow">YOUR WORLD. YOUR CONNECTION.</div><h1>{activeChat ? activeChat.name : title}</h1></div>
+          <div className="top-actions">
+            <button className="icon-button" aria-label="Поиск"><Search size={19} /></button>
+            <button className="icon-button" aria-label="Помощь"><CircleHelp size={19} /></button>
+            <Avatar name="Ваш профиль" initials="D" color="blue" />
+          </div>
+        </header>
+
+        {tab === 'chats' && !activeChat && <section className="content-area">
+          <div className="welcome-banner">
+            <div className="welcome-orb"><Sparkles size={22} /></div>
+            <div className="welcome-copy"><span>РАДЫ ВАС ВИДЕТЬ</span><h2>Всё важное —<br />в одном месте.</h2><p>Общайтесь, делитесь идеями и оставайтесь на связи.</p></div>
+            <div className="banner-glow" />
+          </div>
+          <div className="section-heading"><div><h2>Ваши чаты</h2><p>Недавние переписки</p></div><button className="primary-button small"><Plus size={16} /> Новый чат</button></div>
+          <div className="chat-list">
+            {filteredChats.map(chat => <button className="chat-row" key={chat.id} onClick={() => { setActiveChat(chat); setSentMessages([]) }}>
+              <Avatar name={chat.name} initials={chat.initials} color={chat.color} online={chat.online} />
+              <div className="chat-info"><div className="chat-name">{chat.name}{chat.verified && <span className="verified"><Check size={11} /></span>}</div><p>{chat.message}</p></div>
+              <div className="chat-meta"><time>{chat.time}</time>{chat.unread && <span className="unread">{chat.unread}</span>}</div>
+            </button>)}
+          </div>
+        </section>}
+
+        {tab === 'chats' && activeChat && <section className="conversation">
+          <div className="conversation-head">
+            <button className="back-button" onClick={() => setActiveChat(null)}><ArrowLeft size={19} /></button>
+            <Avatar name={activeChat.name} initials={activeChat.initials} color={activeChat.color} online={activeChat.online} />
+            <div className="conversation-person"><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : activeChat.handle}</span></div>
+            <button className="icon-button" aria-label="Аудиозвонок"><Phone size={18} /></button>
+            <button className="icon-button" aria-label="Видеозвонок"><Video size={18} /></button>
+            <button className="icon-button" aria-label="Настройки чата" onClick={() => setShowImport(true)}><MoreHorizontal size={20} /></button>
+          </div>
+          <div className="history-pill"><LockKeyhole size={13} /> Начало вашей истории в NEXUS</div>
+          <div className="message-day">СЕГОДНЯ</div>
+          <div className="message-line"><div className="bubble bubble-in">Привет! Как продвигается NEXUS?<time>12:32</time></div></div>
+          <div className="message-line mine"><div className="bubble bubble-out">Отлично! Сейчас собираем основу интерфейса.<time>12:34 <CheckCheck size={12} /></time></div></div>
+          <div className="message-line"><div className="bubble bubble-in">Классно. Уже не терпится попробовать!<time>12:36</time></div></div>
+          {sentMessages.map((item, i) => <div className="message-line mine" key={i}><div className="bubble bubble-out">{item}<time>сейчас <Check size={12} /></time></div></div>)}
+          <div className="conversation-spacer" />
+          <div className="composer"><button className="icon-button"><Paperclip size={19} /></button><input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder="Написать сообщение..." /><button className="send-button" onClick={sendMessage}><Send size={17} /></button></div>
+          {showImport && <div className="modal-backdrop" onClick={() => setShowImport(false)}><div className="modal-card" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowImport(false)}><X size={18} /></button><div className="modal-icon"><Archive size={22} /></div><span className="eyebrow">NEXUS HISTORY</span><h2>Импорт переписки</h2><p>Выберите экспортированный архив Telegram, WhatsApp или другого поддерживаемого мессенджера. Это демонстрация интерфейса — обработка архивов появится на следующем этапе.</p>
+            <label className="upload-zone"><FileImage size={23} /><b>{fileName || 'Выберите архив переписки'}</b><span>ZIP, JSON или TXT · предварительный просмотр будет добавлен позже</span><input type="file" accept=".zip,.json,.txt" onChange={e => setFileName(e.target.files?.[0]?.name || '')} /></label>
+            <button className="primary-button full" disabled={!fileName} onClick={() => setShowImport(false)}>Понятно</button>
+          </div></div>}
+        </section>}
+
+        {tab === 'channels' && <section className="content-area">
+          <div className="section-heading"><div><h2>Открывайте новое</h2><p>Каналы по вашим интересам</p></div><button className="primary-button small"><Plus size={16} /> Создать</button></div>
+          <div className="channel-feature"><div className="feature-icon"><Hash size={25} /></div><div><span className="eyebrow">NEXUS CHANNELS</span><h2>Ваши идеи находят аудиторию.</h2><p>Подписывайтесь на интересное и делитесь своим.</p></div></div>
+          <div className="channel-list">{channels.map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button">Открыть</button></div>)}</div>
+        </section>}
+
+        {tab === 'ai' && <section className="content-area ai-area">
+          <div className="ai-intro"><div className="ai-symbol"><Sparkles size={29} /></div><span className="eyebrow">YOUR PERSONAL INTELLIGENCE</span><h2>Думайте шире.<br /><em>Создавайте больше.</em></h2><p>NEXUS AI — помощник, который будет рядом в ваших разговорах и идеях.</p></div>
+          <div className="ai-chat-card"><div className="ai-message"><div className="ai-mini"><Sparkles size={15} /></div><p>{aiAnswer}</p></div><div className="ai-suggestions"><button onClick={() => setAiPrompt('Помоги написать сообщение')}>Помоги написать</button><button onClick={() => setAiPrompt('Кратко перескажи переписку')}>Суммируй чат</button><button onClick={() => setAiPrompt('Переведи текст')}>Перевести</button></div><div className="ai-input"><input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} onKeyDown={e => e.key === 'Enter' && askAI()} placeholder="Спросите NEXUS AI..." /><button className="send-button" onClick={askAI}><Send size={17} /></button></div></div>
+          <p className="demo-caption">Демонстрационный режим · AI API ещё не подключён</p>
+        </section>}
+
+        {tab === 'settings' && <section className="content-area">
+          <div className="settings-profile"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div><b>Ваш профиль</b><span>@yourname</span></div><button className="outline-button">Изменить</button></div>
+          <div className="settings-group"><span className="side-label">ВНЕШНИЙ ВИД</span><div className="setting-row"><div className="setting-icon"><Sparkles size={18} /></div><div><b>Тема оформления</b><span>Выберите настроение NEXUS</span></div><select value={theme} onChange={e => setTheme(e.target.value as typeof theme)}><option value="dark">Тёмная</option><option value="light">Светлая</option><option value="graphite">Графитовая</option></select></div></div>
+          <div className="settings-group"><span className="side-label">ПРИВАТНОСТЬ И БЕЗОПАСНОСТЬ</span><SettingRow icon={<ShieldCheck />} title="Приватность" desc="Кто видит вашу информацию" /><SettingRow icon={<LockKeyhole />} title="Безопасность" desc="Устройства и активные сессии" /><SettingRow icon={<Bell />} title="Уведомления" desc="Звуки и оповещения" /></div>
+          <div className="settings-group"><span className="side-label">ПОДДЕРЖКА</span><SettingRow icon={<CircleHelp />} title="Помощь" desc="Ответы на частые вопросы" /></div>
+        </section>}
+
+        {tab === 'profile' && <section className="content-area">
+          <div className="profile-cover"><div className="profile-cover-glow" /></div>
+          <div className="profile-card"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div className="profile-title"><h2>Ваш профиль</h2><span>@yourname</span></div><button className="outline-button">Редактировать</button><p>Здесь будет ваша история, интересы и цифровая идентичность.</p><div className="profile-stats"><div><b>6</b><span>Чатов</span></div><div><b>3</b><span>Канала</span></div><div><b>2026</b><span>С NEXUS</span></div></div></div>
+        </section>}
+      </main>
+
+      <nav className="mobile-nav">
+        <MobileNav active={tab === 'chats'} icon={<MessageCircle />} label="Чаты" onClick={() => { setTab('chats'); setActiveChat(null) }} />
+        <MobileNav active={tab === 'channels'} icon={<Compass />} label="Каналы" onClick={() => { setTab('channels'); setActiveChat(null) }} />
+        <MobileNav active={tab === 'ai'} icon={<Sparkles />} label="ИИ" onClick={() => { setTab('ai'); setActiveChat(null) }} />
+        <MobileNav active={tab === 'settings'} icon={<Settings />} label="Настройки" onClick={() => { setTab('settings'); setActiveChat(null) }} />
+        <MobileNav active={tab === 'profile'} icon={<Users />} label="Профиль" onClick={() => { setTab('profile'); setActiveChat(null) }} />
+      </nav>
+    </div>
+  )
+}
+
+function NavButton({ active, icon, label, count, onClick }: { active: boolean; icon: React.ReactNode; label: string; count?: string; onClick: () => void }) {
+  return <button className={`nav-button ${active ? 'active' : ''}`} onClick={onClick}>{icon}<span>{label}</span>{count && <small>{count}</small>}</button>
+}
+function MobileNav({ active, icon, label, onClick }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void }) {
+  return <button className={`mobile-nav-button ${active ? 'active' : ''}`} onClick={onClick}>{icon}<span>{label}</span></button>
+}
+function SettingRow({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+  return <button className="setting-row"><div className="setting-icon">{icon}</div><div><b>{title}</b><span>{desc}</span></div><ChevronRight size={17} /></button>
+}
+
+export default App
