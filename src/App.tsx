@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Archive, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
   ChevronRight, CircleHelp, Compass, FileImage, Hash, LockKeyhole,
-  MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send,
+  MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send, Mic, Heart, Ban, Flag, Trash2, Play, Pause,
   Settings, ShieldCheck, Sparkles, Users, Video, X, UserPlus, Camera, BellRing, Globe
 } from 'lucide-react'
 
@@ -18,6 +18,10 @@ type Chat = {
   color: string
   initials: string
   verified?: boolean
+  blocked?: boolean
+  respects?: number
+  bio?: string
+  phone?: string
 }
 
 const initialChats: Chat[] = [
@@ -43,11 +47,17 @@ function Avatar({ name, color, initials, online, size = 'normal' }: { name: stri
 
 function App() {
   const [tab, setTab] = useState<Tab>('chats')
+  const [chatList,setChatList] = useState<Chat[]>(()=>{try{return JSON.parse(localStorage.getItem('nexus-demo-chats')||'null')||initialChats}catch{return initialChats}})
   const [activeChat, setActiveChat] = useState<Chat | null>(null)
   const [viewingFriend, setViewingFriend] = useState<Chat | null>(null)
   const [ownProfile] = useState<any>(() => { try { return JSON.parse(localStorage.getItem('nexus_demo_profile') || 'null') } catch { return null } })
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
+  const [callMode,setCallMode]=useState<'audio'|'video'|null>(null)
+  const [chatMenu,setChatMenu]=useState(false)
+  const [reportOpen,setReportOpen]=useState(false)
+  const [voicePlaying,setVoicePlaying]=useState(false)
+  const [avatarData,setAvatarData]=useState(()=>localStorage.getItem('nexus-demo-avatar')||'')
   const [messagesByChat, setMessagesByChat] = useState<Record<number, string[]>>(() => {
     try { return JSON.parse(localStorage.getItem('nexus-demo-messages') || '{}') } catch { return {} }
   })
@@ -67,6 +77,7 @@ function App() {
   const [profileName, setProfileName] = useState(ownProfile?.displayName || '')
   const [profileUsername, setProfileUsername] = useState(ownProfile?.username || '')
   const [profileBio, setProfileBio] = useState(ownProfile?.bio || '')
+  const [profilePhone,setProfilePhone]=useState(ownProfile?.phone||'')
   const [channelName, setChannelName] = useState('')
   const [channelDescription, setChannelDescription] = useState('')
   const [customChannels, setCustomChannels] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-custom-channels') || '[]') } catch { return [] } })
@@ -75,20 +86,25 @@ function App() {
   const [aiAnswer, setAiAnswer] = useState('Привет! Я NEXUS AI. Я помогу тебе разобраться в идеях, написать сообщение или кратко пересказать переписку. С чего начнём?')
 
   useEffect(() => { localStorage.setItem('nexus-demo-messages', JSON.stringify(messagesByChat)) }, [messagesByChat])
+  useEffect(()=>{localStorage.setItem('nexus-demo-chats',JSON.stringify(chatList))},[chatList])
   useEffect(() => { localStorage.setItem('nexus-demo-theme', theme) }, [theme])
   useEffect(() => { localStorage.setItem('nexus-demo-subscriptions', JSON.stringify(subscriptions)) }, [subscriptions])
   useEffect(() => { localStorage.setItem('nexus-demo-custom-channels', JSON.stringify(customChannels)) }, [customChannels])
   useEffect(() => { localStorage.setItem('nexus-demo-settings', JSON.stringify(settingsFlags)) }, [settingsFlags])
 
-  const filteredChats = useMemo(() => initialChats.filter(chat =>
+  const filteredChats = useMemo(() => chatList.filter(chat => !chat.blocked &&
     (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
   ), [query])
 
   const sendMessage = () => {
     if (!message.trim()) return
-    if (activeChat) setMessagesByChat(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id] || []), message.trim()] }))
+    if (activeChat) { setMessagesByChat(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id] || []), message.trim()] })); setChatList(prev=>prev.map(c=>c.id===activeChat.id?{...c,message:message.trim(),time:'сейчас'}:c)) }
     setMessage('')
   }
+  const sendVoice=()=>{if(!activeChat)return;setMessagesByChat(p=>({...p,[activeChat.id]:[...(p[activeChat.id]||[]),'__VOICE__']}));setChatList(p=>p.map(c=>c.id===activeChat.id?{...c,message:'Голосовое сообщение',time:'сейчас'}:c))}
+  const deleteChat=()=>{if(!activeChat)return;setChatList(p=>p.filter(c=>c.id!==activeChat.id));setMessagesByChat(p=>{const n={...p};delete n[activeChat.id];return n});setActiveChat(null);setChatMenu(false)}
+  const blockChat=()=>{if(!activeChat)return;setChatList(p=>p.map(c=>c.id===activeChat.id?{...c,blocked:!c.blocked}:c));setActiveChat(null);setChatMenu(false)}
+  const respect=()=>{if(!activeChat)return;setChatList(p=>p.map(c=>c.id===activeChat.id?{...c,respects:(c.respects||0)+1}:c));setActiveChat(p=>p?{...p,respects:(p.respects||0)+1}:null)}
 
   const askAI = () => {
     if (!aiPrompt.trim()) return
@@ -164,18 +180,16 @@ function App() {
             <button className="back-button" onClick={() => setActiveChat(null)}><ArrowLeft size={19} /></button>
             <Avatar name={activeChat.name} initials={activeChat.initials} color={activeChat.color} online={activeChat.online} />
             <button className="conversation-person profile-open-button" onClick={() => setViewingFriend(activeChat)}><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : activeChat.handle}</span></button>
-            <button className="icon-button" aria-label="Аудиозвонок"><Phone size={18} /></button>
-            <button className="icon-button" aria-label="Видеозвонок"><Video size={18} /></button>
-            <button className="icon-button" aria-label="Настройки чата" onClick={() => setShowImport(true)}><MoreHorizontal size={20} /></button>
+            <button className="icon-button" aria-label="Аудиозвонок · демо" onClick={()=>setCallMode('audio')}><Phone size={18}/></button><button className="icon-button" aria-label="Видеозвонок · демо" onClick={()=>setCallMode('video')}><Video size={18}/></button><button className="icon-button" aria-label="Меню чата" onClick={()=>setChatMenu(true)}><MoreHorizontal size={20}/></button>
           </div>
           <div className="history-pill"><LockKeyhole size={13} /> Начало вашей истории в NEXUS</div>
           <div className="message-day">СЕГОДНЯ</div>
           <div className="message-line"><div className="bubble bubble-in">Привет! Как продвигается NEXUS?<time>12:32</time></div></div>
           <div className="message-line mine"><div className="bubble bubble-out">Отлично! Сейчас собираем основу интерфейса.<time>12:34 <CheckCheck size={12} /></time></div></div>
           <div className="message-line"><div className="bubble bubble-in">Классно. Уже не терпится попробовать!<time>12:36</time></div></div>
-          {sentMessages.map((item, i) => <div className="message-line mine" key={i}><div className="bubble bubble-out">{item}<time>сейчас <Check size={12} /></time></div></div>)}
+          {sentMessages.map((item, i) => <div className="message-line mine" key={i}><div className="bubble bubble-out">{item==='__VOICE__'?<div className="voice-demo"><button onClick={()=>setVoicePlaying(!voicePlaying)}>{voicePlaying?<Pause size={16}/>:<Play size={16}/>}</button><b>Голосовое сообщение</b><span>▂▅▃▇▅▂▆▃▅▇</span><small>0:12</small></div>:item}<time>сейчас <Check size={12}/></time></div></div>)}
           <div className="conversation-spacer" />
-          <div className="composer"><button className="icon-button"><Paperclip size={19} /></button><input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder="Написать сообщение..." /><button className="send-button" onClick={sendMessage}><Send size={17} /></button></div>
+          <div className="composer"><button className="icon-button"><Paperclip size={19}/></button><input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()} placeholder="Написать сообщение..."/><button className="icon-button" onClick={sendVoice} aria-label="Голосовое демо"><Mic size={18}/></button><button className="send-button" onClick={sendMessage}><Send size={17}/></button></div>
           {showImport && <div className="modal-backdrop" onClick={() => setShowImport(false)}><div className="modal-card" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowImport(false)}><X size={18} /></button><div className="modal-icon"><Archive size={22} /></div><span className="eyebrow">NEXUS HISTORY</span><h2>Импорт переписки</h2><p>Выберите экспортированный архив Telegram, WhatsApp или другого поддерживаемого мессенджера. Это демонстрация интерфейса — обработка архивов появится на следующем этапе.</p>
             <label className="upload-zone"><FileImage size={23} /><b>{fileName || 'Выберите архив переписки'}</b><span>ZIP, JSON или TXT · предварительный просмотр будет добавлен позже</span><input type="file" accept=".zip,.json,.txt" onChange={e => setFileName(e.target.files?.[0]?.name || '')} /></label>
@@ -209,10 +223,13 @@ function App() {
       </main>
 
 
+      {callMode && <div className="modal-backdrop" onClick={()=>setCallMode(null)}><div className="modal-card" onClick={e=>e.stopPropagation()}><button className="modal-close" onClick={()=>setCallMode(null)}><X size={18}/></button><div className="modal-icon"><Phone size={22}/></div><span className="eyebrow">NEXUS CALL · DEMO</span><h2>{activeChat?.name}</h2><p>{callMode==='audio'?'Аудиозвонок':'Видеозвонок'} — имитация интерфейса, реального соединения нет.</p><button className="primary-button full" onClick={()=>setCallMode(null)}>Завершить вызов</button></div></div>}
+      {chatMenu && activeChat && <div className="modal-backdrop" onClick={()=>setChatMenu(false)}><div className="modal-card" onClick={e=>e.stopPropagation()}><button className="modal-close" onClick={()=>setChatMenu(false)}><X size={18}/></button><h2>Действия с чатом</h2><button className="action-row" onClick={()=>{setChatMenu(false);setViewingFriend(activeChat)}}><Users/>Профиль собеседника</button><button className="action-row" onClick={respect}><Heart/>Поставить респект · {activeChat.respects||0}</button><button className="action-row" onClick={blockChat}><Ban/>Заблокировать</button><button className="action-row" onClick={()=>{setChatMenu(false);setReportOpen(true)}}><Flag/>Пожаловаться</button><button className="action-row danger" onClick={deleteChat}><Trash2/>Удалить чат</button></div></div>}
+      {reportOpen && <div className="modal-backdrop" onClick={()=>setReportOpen(false)}><div className="modal-card" onClick={e=>e.stopPropagation()}><h2>Жалоба · демо</h2><p>Сценарий не отправляет жалобу на сервер.</p><select className="report-select"><option>Спам</option><option>Мошенничество</option><option>Оскорбления</option><option>Другое</option></select><button className="primary-button full" onClick={()=>setReportOpen(false)}>Готово</button></div></div>}
       {dialog && <div className="modal-backdrop" onClick={() => setDialog(null)}><div className="modal-card feature-dialog" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={() => setDialog(null)}><X size={18}/></button>
-        {dialog === 'new-chat' && <><div className="modal-icon"><UserPlus size={22}/></div><span className="eyebrow">NEXUS CONTACTS</span><h2>Новый чат</h2><p>Добавьте демонстрационный контакт по имени и username.</p><label className="field-label">Имя<input value={contactName} onChange={e=>setContactName(e.target.value)} placeholder="Например, Алексей"/></label><label className="field-label">Username<input value={contactHandle} onChange={e=>setContactHandle(e.target.value.replace(/^@/,''))} placeholder="username"/></label><button className="primary-button full" disabled={!contactName.trim() || contactHandle.trim().length<3} onClick={()=>{const c:Chat={id:Date.now(),name:contactName.trim(),handle:'@'+contactHandle.trim(),message:'Новый чат',time:'сейчас',online:false,color:'blue',initials:contactName.trim().slice(0,1).toUpperCase()};initialChats.unshift(c);setActiveChat(c);setTab('chats');setDialog(null);setContactName('');setContactHandle('')}}>Создать чат</button></>}
-        {dialog === 'edit-profile' && <><div className="modal-icon"><Camera size={22}/></div><span className="eyebrow">YOUR IDENTITY</span><h2>Редактировать профиль</h2><p>Эти данные сохраняются локально на этом устройстве.</p><label className="field-label">Имя<input value={profileName} onChange={e=>setProfileName(e.target.value)} placeholder="Ваше имя"/></label><label className="field-label">Username<input value={profileUsername} onChange={e=>setProfileUsername(e.target.value.replace(/^@/,''))} placeholder="username"/></label><label className="field-label">О себе<textarea value={profileBio} onChange={e=>setProfileBio(e.target.value)} placeholder="Расскажите немного о себе"/></label><button className="primary-button full" disabled={profileName.trim().length<2 || profileUsername.trim().length<3} onClick={()=>{const p={...(ownProfile||{}),displayName:profileName.trim(),username:profileUsername.trim(),bio:profileBio.trim()};localStorage.setItem('nexus_demo_profile',JSON.stringify(p));setDialog(null);window.location.reload()}}>Сохранить изменения</button></>}
+        {dialog === 'new-chat' && <><div className="modal-icon"><UserPlus size={22}/></div><span className="eyebrow">NEXUS CONTACTS</span><h2>Новый чат</h2><p>Добавьте демонстрационный контакт по имени и username.</p><label className="field-label">Имя<input value={contactName} onChange={e=>setContactName(e.target.value)} placeholder="Например, Алексей"/></label><label className="field-label">Username<input value={contactHandle} onChange={e=>setContactHandle(e.target.value.replace(/^@/,''))} placeholder="username"/></label><button className="primary-button full" disabled={!contactName.trim() || contactHandle.trim().length<3} onClick={()=>{const c:Chat={id:Date.now(),name:contactName.trim(),handle:'@'+contactHandle.trim(),message:'Новый чат',time:'сейчас',online:false,color:'blue',initials:contactName.trim().slice(0,1).toUpperCase()};setChatList(p=>[c,...p]);setActiveChat(c);setTab('chats');setDialog(null);setContactName('');setContactHandle('')}}>Создать чат</button></>}
+        {dialog === 'edit-profile' && <><div className="modal-icon"><Camera size={22}/></div><span className="eyebrow">YOUR IDENTITY</span><h2>Редактировать профиль</h2><p>Эти данные сохраняются локально на этом устройстве.</p><label className="field-label">Имя<input value={profileName} onChange={e=>setProfileName(e.target.value)} placeholder="Ваше имя"/></label><label className="field-label">Username<input value={profileUsername} onChange={e=>setProfileUsername(e.target.value.replace(/^@/,''))} placeholder="username"/></label><label className="field-label">О себе<textarea value={profileBio} onChange={e=>setProfileBio(e.target.value)} placeholder="Расскажите немного о себе"/></label><label className="field-label">Телефон<input value={profilePhone} onChange={e=>setProfilePhone(e.target.value)} placeholder="+7 ..."/></label><button className="primary-button full" disabled={profileName.trim().length<2 || profileUsername.trim().length<3} onClick={()=>{const p={...(ownProfile||{}),displayName:profileName.trim(),username:profileUsername.trim(),bio:profileBio.trim(),phone:profilePhone.trim()};localStorage.setItem('nexus_demo_profile',JSON.stringify(p));setDialog(null);window.location.reload()}}>Сохранить изменения</button></>}
         {dialog === 'create-channel' && <><div className="modal-icon"><Globe size={22}/></div><span className="eyebrow">NEXUS CHANNELS</span><h2>Создать канал</h2><p>Создайте локальный демонстрационный канал.</p><label className="field-label">Название<input value={channelName} onChange={e=>setChannelName(e.target.value)} placeholder="Название канала"/></label><label className="field-label">Описание<textarea value={channelDescription} onChange={e=>setChannelDescription(e.target.value)} placeholder="О чём этот канал?"/></label><button className="primary-button full" disabled={channelName.trim().length<2} onClick={()=>{setCustomChannels(p=>[{name:channelName.trim(),tag:'@'+channelName.trim().toLowerCase().replace(/[^a-z0-9а-яё]+/gi,'_'),desc:channelDescription.trim()||'Новый канал NEXUS',count:'1',color:'blue',initials:channelName.trim().slice(0,1).toUpperCase()},...p]);setChannelName('');setChannelDescription('');setDialog(null)}}>Создать канал</button></>}
       </div></div>}
 
