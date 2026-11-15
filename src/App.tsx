@@ -3,7 +3,7 @@ import {
   Archive, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
   ChevronRight, CircleHelp, Compass, FileImage, Hash, LockKeyhole,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send,
-  Settings, ShieldCheck, Sparkles, Users, Video, X
+  Settings, ShieldCheck, Sparkles, Users, Video, X, UserPlus, Camera, BellRing, Globe
 } from 'lucide-react'
 
 type Tab = 'chats' | 'channels' | 'ai' | 'settings' | 'profile'
@@ -61,12 +61,24 @@ function App() {
   })
   const [showImport, setShowImport] = useState(false)
   const [fileName, setFileName] = useState('')
+  const [dialog, setDialog] = useState<'new-chat' | 'edit-profile' | 'create-channel' | null>(null)
+  const [contactName, setContactName] = useState('')
+  const [contactHandle, setContactHandle] = useState('')
+  const [profileName, setProfileName] = useState(ownProfile?.displayName || '')
+  const [profileUsername, setProfileUsername] = useState(ownProfile?.username || '')
+  const [profileBio, setProfileBio] = useState(ownProfile?.bio || '')
+  const [channelName, setChannelName] = useState('')
+  const [channelDescription, setChannelDescription] = useState('')
+  const [customChannels, setCustomChannels] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-custom-channels') || '[]') } catch { return [] } })
+  const [settingsFlags, setSettingsFlags] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-settings') || '{"push":true,"sound":true,"phone":false,"read":true}') } catch { return {push:true,sound:true,phone:false,read:true} } })
   const [aiPrompt, setAiPrompt] = useState('')
   const [aiAnswer, setAiAnswer] = useState('Привет! Я NEXUS AI. Я помогу тебе разобраться в идеях, написать сообщение или кратко пересказать переписку. С чего начнём?')
 
   useEffect(() => { localStorage.setItem('nexus-demo-messages', JSON.stringify(messagesByChat)) }, [messagesByChat])
   useEffect(() => { localStorage.setItem('nexus-demo-theme', theme) }, [theme])
   useEffect(() => { localStorage.setItem('nexus-demo-subscriptions', JSON.stringify(subscriptions)) }, [subscriptions])
+  useEffect(() => { localStorage.setItem('nexus-demo-custom-channels', JSON.stringify(customChannels)) }, [customChannels])
+  useEffect(() => { localStorage.setItem('nexus-demo-settings', JSON.stringify(settingsFlags)) }, [settingsFlags])
 
   const filteredChats = useMemo(() => initialChats.filter(chat =>
     (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
@@ -135,7 +147,7 @@ function App() {
             <div className="welcome-copy"><span>РАДЫ ВАС ВИДЕТЬ</span><h2>Всё важное —<br />в одном месте.</h2><p>Общайтесь, делитесь идеями и оставайтесь на связи.</p></div>
             <div className="banner-glow" />
           </div>
-          <div className="section-heading"><div><h2>Ваши чаты</h2><p>Недавние переписки</p></div><button className="primary-button small"><Plus size={16} /> Новый чат</button></div>
+          <div className="section-heading"><div><h2>Ваши чаты</h2><p>Недавние переписки</p></div><button className="primary-button small" onClick={() => setDialog('new-chat')}><Plus size={16} /> Новый чат</button></div>
           <div className="chat-list">
             {filteredChats.map(chat => <button className="chat-row" key={chat.id} onClick={() => { setActiveChat(chat) }}>
               <Avatar name={chat.name} initials={chat.initials} color={chat.color} online={chat.online} />
@@ -172,9 +184,9 @@ function App() {
         </section>}
 
         {tab === 'channels' && <section className="content-area">
-          <div className="section-heading"><div><h2>Открывайте новое</h2><p>Каналы по вашим интересам</p></div><button className="primary-button small"><Plus size={16} /> Создать</button></div>
+          <div className="section-heading"><div><h2>Открывайте новое</h2><p>Каналы по вашим интересам</p></div><button className="primary-button small" onClick={() => setDialog('create-channel')}><Plus size={16} /> Создать</button></div>
           <div className="channel-feature"><div className="feature-icon"><Hash size={25} /></div><div><span className="eyebrow">NEXUS CHANNELS</span><h2>Ваши идеи находят аудиторию.</h2><p>Подписывайтесь на интересное и делитесь своим.</p></div></div>
-          <div className="channel-list">{channels.map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button" onClick={() => setSubscriptions(prev => prev.includes(channel.tag) ? prev.filter(x => x !== channel.tag) : [...prev, channel.tag])}>{subscriptions.includes(channel.tag) ? 'Вы подписаны' : 'Подписаться'}</button></div>)}</div>
+          <div className="channel-list">{[...channels, ...customChannels].map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button" onClick={() => setSubscriptions(prev => prev.includes(channel.tag) ? prev.filter(x => x !== channel.tag) : [...prev, channel.tag])}>{subscriptions.includes(channel.tag) ? 'Вы подписаны' : 'Подписаться'}</button></div>)}</div>
         </section>}
 
         {tab === 'ai' && <section className="content-area ai-area">
@@ -184,17 +196,25 @@ function App() {
         </section>}
 
         {tab === 'settings' && <section className="content-area">
-          <div className="settings-profile"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div><b>Ваш профиль</b><span>@yourname</span></div><button className="outline-button">Изменить</button></div>
+          <div className="settings-profile"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div><b>Ваш профиль</b><span>@yourname</span></div><button className="outline-button" onClick={() => setDialog('edit-profile')}>Изменить</button></div>
           <div className="settings-group"><span className="side-label">ВНЕШНИЙ ВИД</span><div className="setting-row"><div className="setting-icon"><Sparkles size={18} /></div><div><b>Тема оформления</b><span>Выберите настроение NEXUS</span></div><select value={theme} onChange={e => setTheme(e.target.value as typeof theme)}><option value="dark">Тёмная</option><option value="light">Светлая</option><option value="black">Чёрная · белые сообщения</option></select></div></div>
-          <div className="settings-group"><span className="side-label">ПРИВАТНОСТЬ И БЕЗОПАСНОСТЬ</span><SettingRow icon={<ShieldCheck />} title="Приватность" desc="Кто видит вашу информацию" /><SettingRow icon={<LockKeyhole />} title="Безопасность" desc="Устройства и активные сессии" /><SettingRow icon={<Bell />} title="Уведомления" desc="Звуки и оповещения" /></div>
+          <div className="settings-group"><span className="side-label">ПРИВАТНОСТЬ И БЕЗОПАСНОСТЬ</span><SettingToggle icon={<Globe />} title="Показывать номер телефона" desc="Видимость номера для других" checked={settingsFlags.phone} onChange={() => setSettingsFlags(p => ({...p,phone:!p.phone}))} /><SettingToggle icon={<ShieldCheck />} title="Отчёты о прочтении" desc="Показывать статус прочтения" checked={settingsFlags.read} onChange={() => setSettingsFlags(p => ({...p,read:!p.read}))} /><SettingToggle icon={<BellRing />} title="Push-уведомления" desc="Получать уведомления о сообщениях" checked={settingsFlags.push} onChange={() => setSettingsFlags(p => ({...p,push:!p.push}))} /><SettingToggle icon={<Bell />} title="Звуки уведомлений" desc="Звуковое оповещение" checked={settingsFlags.sound} onChange={() => setSettingsFlags(p => ({...p,sound:!p.sound}))} /></div>
           <div className="settings-group"><span className="side-label">ПОДДЕРЖКА</span><SettingRow icon={<CircleHelp />} title="Помощь" desc="Ответы на частые вопросы" /></div>
         </section>}
 
         {tab === 'profile' && <section className="content-area">
           <div className="profile-cover"><div className="profile-cover-glow" /></div>
-          <div className="profile-card own-profile-card"><Avatar name="Ваш профиль" initials={(ownProfile?.displayName || "D").slice(0,1).toUpperCase()} color="blue" size="large" /><div className="profile-title"><h2>{ownProfile?.displayName || "Ваш профиль"}</h2><span>@{ownProfile?.username || "yourname"}</span></div><button className="outline-button">Редактировать</button><p>{ownProfile?.bio || "Добавьте описание, чтобы друзья могли узнать вас поближе."}</p><div className="profile-stats"><div><b>6</b><span>Чатов</span></div><div><b>3</b><span>Канала</span></div><div><b>2026</b><span>С NEXUS</span></div></div></div>
+          <div className="profile-card own-profile-card"><Avatar name="Ваш профиль" initials={(ownProfile?.displayName || "D").slice(0,1).toUpperCase()} color="blue" size="large" /><div className="profile-title"><h2>{ownProfile?.displayName || "Ваш профиль"}</h2><span>@{ownProfile?.username || "yourname"}</span></div><button className="outline-button" onClick={() => setDialog('edit-profile')}>Редактировать</button><p>{ownProfile?.bio || "Добавьте описание, чтобы друзья могли узнать вас поближе."}</p><div className="profile-stats"><div><b>6</b><span>Чатов</span></div><div><b>3</b><span>Канала</span></div><div><b>2026</b><span>С NEXUS</span></div></div></div>
         </section>}
       </main>
+
+
+      {dialog && <div className="modal-backdrop" onClick={() => setDialog(null)}><div className="modal-card feature-dialog" onClick={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={() => setDialog(null)}><X size={18}/></button>
+        {dialog === 'new-chat' && <><div className="modal-icon"><UserPlus size={22}/></div><span className="eyebrow">NEXUS CONTACTS</span><h2>Новый чат</h2><p>Добавьте демонстрационный контакт по имени и username.</p><label className="field-label">Имя<input value={contactName} onChange={e=>setContactName(e.target.value)} placeholder="Например, Алексей"/></label><label className="field-label">Username<input value={contactHandle} onChange={e=>setContactHandle(e.target.value.replace(/^@/,''))} placeholder="username"/></label><button className="primary-button full" disabled={!contactName.trim() || contactHandle.trim().length<3} onClick={()=>{const c:Chat={id:Date.now(),name:contactName.trim(),handle:'@'+contactHandle.trim(),message:'Новый чат',time:'сейчас',online:false,color:'blue',initials:contactName.trim().slice(0,1).toUpperCase()};initialChats.unshift(c);setActiveChat(c);setTab('chats');setDialog(null);setContactName('');setContactHandle('')}}>Создать чат</button></>}
+        {dialog === 'edit-profile' && <><div className="modal-icon"><Camera size={22}/></div><span className="eyebrow">YOUR IDENTITY</span><h2>Редактировать профиль</h2><p>Эти данные сохраняются локально на этом устройстве.</p><label className="field-label">Имя<input value={profileName} onChange={e=>setProfileName(e.target.value)} placeholder="Ваше имя"/></label><label className="field-label">Username<input value={profileUsername} onChange={e=>setProfileUsername(e.target.value.replace(/^@/,''))} placeholder="username"/></label><label className="field-label">О себе<textarea value={profileBio} onChange={e=>setProfileBio(e.target.value)} placeholder="Расскажите немного о себе"/></label><button className="primary-button full" disabled={profileName.trim().length<2 || profileUsername.trim().length<3} onClick={()=>{const p={...(ownProfile||{}),displayName:profileName.trim(),username:profileUsername.trim(),bio:profileBio.trim()};localStorage.setItem('nexus_demo_profile',JSON.stringify(p));setDialog(null);window.location.reload()}}>Сохранить изменения</button></>}
+        {dialog === 'create-channel' && <><div className="modal-icon"><Globe size={22}/></div><span className="eyebrow">NEXUS CHANNELS</span><h2>Создать канал</h2><p>Создайте локальный демонстрационный канал.</p><label className="field-label">Название<input value={channelName} onChange={e=>setChannelName(e.target.value)} placeholder="Название канала"/></label><label className="field-label">Описание<textarea value={channelDescription} onChange={e=>setChannelDescription(e.target.value)} placeholder="О чём этот канал?"/></label><button className="primary-button full" disabled={channelName.trim().length<2} onClick={()=>{setCustomChannels(p=>[{name:channelName.trim(),tag:'@'+channelName.trim().toLowerCase().replace(/[^a-z0-9а-яё]+/gi,'_'),desc:channelDescription.trim()||'Новый канал NEXUS',count:'1',color:'blue',initials:channelName.trim().slice(0,1).toUpperCase()},...p]);setChannelName('');setChannelDescription('');setDialog(null)}}>Создать канал</button></>}
+      </div></div>}
 
       <nav className="mobile-nav">
         <MobileNav active={tab === 'chats'} icon={<MessageCircle />} label="Чаты" onClick={() => { setTab('chats'); setActiveChat(null) }} />
@@ -213,6 +233,7 @@ function NavButton({ active, icon, label, count, onClick }: { active: boolean; i
 function MobileNav({ active, icon, label, onClick }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void }) {
   return <button className={`mobile-nav-button ${active ? 'active' : ''}`} onClick={onClick}>{icon}<span>{label}</span></button>
 }
+function SettingToggle({icon,title,desc,checked,onChange}:{icon:React.ReactNode;title:string;desc:string;checked:boolean;onChange:()=>void}) { return <button className="setting-row setting-toggle" onClick={onChange}><div className="setting-icon">{icon}</div><div><b>{title}</b><span>{desc}</span></div><span className={`toggle-track ${checked?'on':''}`}><i/></span></button> }
 function SettingRow({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return <button className="setting-row"><div className="setting-icon">{icon}</div><div><b>{title}</b><span>{desc}</span></div><ChevronRight size={17} /></button>
 }
