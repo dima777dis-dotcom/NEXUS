@@ -425,3 +425,17 @@ body{background:#080d17}
   .app.conversation-open .conversation-spacer{min-height:18px}
   .app.conversation-open .message-list{min-height:0}
 }
+
+
+/* Reserve space for the bottom browser toolbar on Android mobile browsers */
+@media(max-width:640px){
+  .app.conversation-open .conversation{
+    padding-bottom:calc(104px + env(safe-area-inset-bottom))!important;
+  }
+  .app.conversation-open .composer{
+    margin-bottom:8px!important;
+  }
+  .app.conversation-open .emoji-tray{
+    margin-bottom:0;
+  }
+}
