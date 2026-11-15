@@ -94,7 +94,7 @@ function App() {
 
   const filteredChats = useMemo(() => chatList.filter(chat => !chat.blocked &&
     (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
-  ), [query])
+  ), [query, chatList])
 
   const sendMessage = () => {
     if (!message.trim()) return
