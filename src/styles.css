@@ -400,3 +400,28 @@ body{background:#080d17}
  .message-line.grouped{margin-top:0}
  .composer{margin:6px 0 2px;border-radius:15px;min-height:52px}
 }
+
+
+/* Fit the conversation to the actually visible mobile browser viewport */
+@media(max-width:640px){
+  .app.conversation-open .main-panel{
+    height:var(--nexus-visible-height,100dvh)!important;
+    min-height:0!important;
+  }
+  .app.conversation-open .conversation{
+    height:var(--nexus-visible-height,100dvh)!important;
+    min-height:0!important;
+    max-height:var(--nexus-visible-height,100dvh);
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:max(8px,env(safe-area-inset-bottom));
+  }
+  .app.conversation-open .composer{
+    position:relative;
+    bottom:auto;
+    margin:6px 0 8px;
+    flex-shrink:0;
+    padding-bottom:4px;
+  }
+  .app.conversation-open .conversation-spacer{min-height:18px}
+  .app.conversation-open .message-list{min-height:0}
+}
