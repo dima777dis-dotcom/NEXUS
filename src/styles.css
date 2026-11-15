@@ -312,3 +312,24 @@ body{background:#080d17}
 .theme-black .send-button{background:#fff;color:#000}
 .theme-black .primary-button svg,
 .theme-black .send-button svg{color:#000!important;stroke:#000!important}
+
+
+/* Demo-completion dialogs, editable profile and real setting toggles */
+.feature-dialog{width:min(460px,calc(100vw - 32px));max-height:88vh;overflow:auto}
+.field-label{display:flex;flex-direction:column;gap:8px;margin:14px 0;color:var(--text);font-size:12px;font-weight:650}
+.field-label input,.field-label textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--panel-2);color:var(--text);font:inherit;outline:none}
+.field-label textarea{min-height:90px;resize:vertical}
+.field-label input:focus,.field-label textarea:focus{border-color:var(--muted)}
+.feature-dialog .primary-button{margin-top:12px}
+.setting-toggle{cursor:pointer;text-align:left}
+.toggle-track{width:42px;height:24px;border-radius:20px;background:#555;display:flex;align-items:center;padding:3px;box-sizing:border-box;transition:.2s;flex:none}
+.toggle-track i{width:18px;height:18px;border-radius:50%;background:#fff;display:block;transition:.2s}
+.toggle-track.on{background:#fff}
+.toggle-track.on i{transform:translateX(18px);background:#000}
+.theme-black .feature-dialog{background:#0b0b0b;color:#fff;border:1px solid #292929}
+.theme-black .field-label{color:#eee}
+.theme-black .field-label input,.theme-black .field-label textarea{background:#111;color:#fff;border-color:#333}
+.theme-black .toggle-track{background:#555}
+.theme-black .toggle-track.on{background:#fff}
+.theme-black .toggle-track.on i{background:#000}
+.theme-light .field-label input,.theme-light .field-label textarea{background:#fff;color:#111}
