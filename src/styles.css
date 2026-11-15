@@ -7,7 +7,7 @@ button,input,select{font:inherit}
 button{cursor:pointer}
 .app{--bg:#090d16;--panel:#0e1421;--panel-2:#121b2b;--line:rgba(157,180,220,.11);--text:#edf3ff;--muted:#8492aa;--blue:#5598ff;--blue-2:#2875e8;--bubble:#151f30;min-height:100vh;background:var(--bg);color:var(--text);display:flex}
 .theme-light{--bg:#f4f7fc;--panel:#fff;--panel-2:#f2f6fc;--line:rgba(31,54,88,.12);--text:#17243a;--muted:#77849a;--bubble:#edf3fb}
-.theme-graphite{--bg:#111315;--panel:#191d20;--panel-2:#22272b;--line:rgba(210,220,230,.1);--text:#edf0f2;--muted:#929da5;--bubble:#242b30}
+.theme-black{--bg:#000;--panel:#080808;--panel-2:#111;--line:rgba(255,255,255,.13);--text:#f7f7f7;--muted:#929292;--bubble:#fff}
 .sidebar{width:272px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);padding:25px 17px 18px;display:flex;flex-direction:column;min-height:100vh}
 .brand-row{display:flex;align-items:center;gap:11px;padding:0 7px 28px}
 .brand-mark{width:39px;height:39px;border-radius:13px;background:linear-gradient(145deg,#70b3ff,#286de0);display:grid;place-items:center;color:white;font:800 23px Manrope;box-shadow:0 7px 22px #2778ed44}
@@ -116,3 +116,10 @@ body{background:#080d17}
  .ai-intro{padding-top:18px}
  .profile-cover{height:155px}
 }
+
+/* Pure black theme: crisp white message bubbles */
+.theme-black .bubble,.theme-black .bubble-out{background:#fff;color:#090909;border:1px solid #e8e8e8}
+.theme-black .bubble time,.theme-black .bubble-out time{color:#666}
+.theme-black .welcome-banner,.theme-black .channel-feature{background:linear-gradient(120deg,#101010,#050505 70%,#151515);border-color:rgba(255,255,255,.14)}
+.theme-black .nav-button.active{color:#fff;background:#202020}
+.theme-black .nav-button.active svg{color:#fff}
