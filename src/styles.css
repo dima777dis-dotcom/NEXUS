@@ -439,3 +439,41 @@ body{background:#080d17}
     margin-bottom:0;
   }
 }
+
+
+/* Compact conversation: keep identity visible and remove the oversized gap */
+@media(max-width:640px){
+  .app.conversation-open .conversation{
+    padding-top:0!important;
+    padding-bottom:18px!important;
+    overflow-y:auto!important;
+    justify-content:flex-start;
+  }
+  .app.conversation-open .conversation-head{
+    display:flex!important;
+    position:sticky;
+    top:0;
+    z-index:30;
+    flex:0 0 66px!important;
+    min-height:66px!important;
+    margin:0 -10px 8px!important;
+    padding:0 12px!important;
+    background:var(--bg)!important;
+    border-bottom:1px solid var(--line);
+  }
+  .app.conversation-open .conversation-spacer{
+    display:none!important;
+    flex:0 0 0!important;
+    min-height:0!important;
+    height:0!important;
+  }
+  .app.conversation-open .message-day{
+    margin:8px auto 10px!important;
+  }
+  .app.conversation-open .composer{
+    position:sticky!important;
+    bottom:10px!important;
+    margin:16px 0 10px!important;
+    flex:0 0 auto!important;
+  }
+}
