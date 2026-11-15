@@ -178,3 +178,33 @@ body{background:#080d17}
 .theme-black .ai-message p{color:#111}
 .theme-black .ai-suggestions button{background:#f2f2f2;color:#333;border-color:#ddd}
 .theme-black .history-pill{background:#fff;color:#111}
+
+
+/* Larger personal and friend profile presentation */
+.avatar-large{width:112px;height:112px;border-radius:30px;font-size:42px;border:5px solid var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.22)}
+.profile-card>.avatar{margin-top:-58px}
+.profile-card{padding-top:0}
+.profile-title{margin-top:14px}
+.profile-title h2{font-size:25px;letter-spacing:-.5px}
+.profile-title span{font-size:13px}
+.profile-card p{font-size:13px;line-height:1.75}
+.profile-stats{gap:55px;padding-top:21px}
+.profile-stats b{font-size:19px}
+.profile-stats span{font-size:12px}
+.profile-cover{height:225px}
+.profile-back{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:10px 14px;margin:2px 0 4px;font-size:12px}
+.profile-open-button{border:0;background:transparent;text-align:left;cursor:pointer;padding:0}
+.profile-open-button:hover b{text-decoration:underline}
+.friend-profile-card{padding-bottom:24px}
+.friend-message-button{margin-top:24px}
+.theme-black .profile-back{background:#fff;color:#111;border-color:#ddd}
+.theme-black .avatar-large{border-color:#fff}
+@media(max-width:640px){
+ .profile-cover{height:185px}
+ .avatar-large{width:124px;height:124px;border-radius:34px;font-size:46px}
+ .profile-card>.avatar{margin-top:-64px}
+ .profile-card{margin-left:10px;margin-right:10px;padding-left:20px;padding-right:20px}
+ .profile-title h2{font-size:24px}
+ .profile-stats{gap:34px}
+ .friend-profile-page{padding-bottom:24px}
+}
