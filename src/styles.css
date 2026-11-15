@@ -354,3 +354,49 @@ body{background:#080d17}
 .blocked-row .outline-button{white-space:nowrap;padding:8px 11px;font-size:11px}
 .theme-black .confirm-actions .outline-button{background:#111;color:#fff;border-color:#333}
 @media(max-width:520px){.confirm-actions{flex-direction:column-reverse}.confirm-actions button{width:100%}.blocked-row{gap:8px}.blocked-row .outline-button{padding:7px 8px;font-size:10px}}
+
+
+/* Conversation-first mobile messenger layout */
+.app.conversation-open .mobile-nav{display:none!important}
+.app.conversation-open .main-panel{padding-bottom:0!important}
+.conversation{height:calc(100dvh - 104px);min-height:0;display:flex;flex-direction:column;position:relative;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+.conversation-head{flex:0 0 66px;min-height:66px;gap:10px;border-bottom:1px solid rgba(150,180,230,.08)}
+.conversation-head>.avatar{width:38px;height:38px;border-radius:12px;flex:none}
+.conversation-person{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.conversation-person b{color:#fff!important;font-size:16px;font-weight:700;line-height:1.15}
+.conversation-person span{font-size:11px;color:#55cf91!important;line-height:1.1}
+.message-day{font-size:10px;color:var(--muted);letter-spacing:.3px;background:transparent;border:0;margin:12px auto 8px;padding:4px 12px}
+.message-line{display:flex;position:relative;margin:3px 0;padding:0 10px}
+.message-line.mine{justify-content:flex-end}
+.message-line.grouped{margin-top:1px}
+.bubble{max-width:min(78%,520px);padding:8px 10px 6px;border-radius:13px;font-size:13px;line-height:1.38;position:relative;box-shadow:none}
+.bubble-in{background:#1c2535!important;color:#eaf0fa!important;border:1px solid rgba(255,255,255,.035)}
+.bubble-out{background:#244b7e!important;color:#fff!important;border:1px solid rgba(255,255,255,.04)}
+.bubble time{display:inline-flex;align-items:center;gap:3px;float:right;margin:5px 0 0 10px;font-size:9px;line-height:1;color:rgba(230,238,250,.58)!important;white-space:nowrap}
+.conversation .conversation-spacer{flex:1;min-height:8px}
+.composer{flex:0 0 auto;position:sticky;bottom:0;z-index:8;margin:8px 0 max(8px,env(safe-area-inset-bottom));background:var(--panel);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(-20px -100vmax 0);gap:5px}
+.composer input{min-width:0;flex:1}
+.composer .icon-button{width:34px;height:38px;flex:none}
+.composer .send-button{width:42px;height:42px;flex:none}
+.reply-preview{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;margin:5px 0 0;border-left:3px solid #5b9df2;background:var(--panel-2);border-radius:8px;font-size:11px;color:var(--muted)}
+.reply-preview button{border:0;background:transparent;color:var(--muted)}
+.emoji-tray{display:flex;gap:8px;padding:8px 10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:5px}
+.emoji-tray button{font-size:21px;border:0;background:transparent;padding:4px}
+.message-reaction{position:absolute;bottom:-12px;right:8px;background:#17243a;border:1px solid #30445f;border-radius:10px;padding:1px 5px;font-size:12px}
+.message-context{position:absolute;z-index:12;left:14px;top:100%;display:flex;gap:4px;flex-wrap:wrap;padding:7px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px #0005}
+.message-context button{border:0;border-radius:7px;background:var(--panel-2);color:var(--text);padding:7px 9px;font-size:10px}
+.theme-black .bubble-in{background:#1c2535!important;color:#f2f5fa!important}
+.theme-light .bubble-in{background:#e8eef7!important;color:#182235!important}
+.theme-light .conversation-person b{color:#182235!important}
+@media(max-width:640px){
+ .app.conversation-open .topbar{display:none}
+ .app.conversation-open .main-panel{padding:0!important;height:100dvh;overflow:hidden}
+ .conversation{height:100dvh;height:100dvh;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom);box-sizing:border-box}
+ .conversation-head{flex-basis:58px;min-height:58px;margin:0 -10px;padding:0 9px}
+ .conversation-head>.avatar{width:34px;height:34px;border-radius:11px}
+ .conversation-person b{font-size:16px}
+ .bubble{max-width:84%;padding:7px 9px 5px;border-radius:11px;font-size:13px}
+ .message-line{margin:2px 0;padding:0 3px}
+ .message-line.grouped{margin-top:0}
+ .composer{margin:6px 0 2px;border-radius:15px;min-height:52px}
+}
