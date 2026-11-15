@@ -53,6 +53,10 @@ function App() {
   const [ownProfile] = useState<any>(() => { try { return JSON.parse(localStorage.getItem('nexus_demo_profile') || 'null') } catch { return null } })
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
+  const [emojiOpen,setEmojiOpen]=useState(false)
+  const [replyTo,setReplyTo]=useState('')
+  const [messageMenu,setMessageMenu]=useState<number|null>(null)
+  const [reaction,setReaction]=useState<Record<number,string>>({})
   const [callMode,setCallMode]=useState<'audio'|'video'|null>(null)
   const [chatMenu,setChatMenu]=useState(false)
   const [confirmAction,setConfirmAction]=useState<'block'|'delete'|null>(null)
@@ -100,8 +104,9 @@ function App() {
 
   const sendMessage = () => {
     if (!message.trim()) return
-    if (activeChat) { setMessagesByChat(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id] || []), message.trim()] })); setChatList(prev=>prev.map(c=>c.id===activeChat.id?{...c,message:message.trim(),time:'сейчас'}:c)) }
-    setMessage('')
+    const body=(replyTo?`↪ ${replyTo} · `:'')+message.trim()
+    if (activeChat) { setMessagesByChat(prev => ({ ...prev, [activeChat.id]: [...(prev[activeChat.id] || []), body] })); setChatList(prev=>prev.map(c=>c.id===activeChat.id?{...c,message:message.trim(),time:'сейчас'}:c)) }
+    setMessage('');setReplyTo('');setEmojiOpen(false)
   }
   const sendVoice=()=>{if(!activeChat)return;setMessagesByChat(p=>({...p,[activeChat.id]:[...(p[activeChat.id]||[]),'__VOICE__']}));setChatList(p=>p.map(c=>c.id===activeChat.id?{...c,message:'Голосовое сообщение',time:'сейчас'}:c))}
   const deleteChat=()=>{if(!activeChat)return;setChatList(p=>p.filter(c=>c.id!==activeChat.id));setMessagesByChat(p=>{const n={...p};delete n[activeChat.id];return n});setActiveChat(null);setChatMenu(false)}
@@ -183,17 +188,14 @@ function App() {
           <div className="conversation-head">
             <button className="back-button" onClick={() => setActiveChat(null)}><ArrowLeft size={19} /></button>
             <Avatar name={activeChat.name} initials={activeChat.initials} color={activeChat.color} online={activeChat.online} />
-            <button className="conversation-person profile-open-button" onClick={() => setViewingFriend(activeChat)}><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : activeChat.handle}</span></button>
+            <button className="conversation-person profile-open-button" onClick={() => setViewingFriend(activeChat)}><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : 'был(а) недавно'}</span></button>
             <button className="icon-button" aria-label="Аудиозвонок · демо" onClick={()=>setCallMode('audio')}><Phone size={18}/></button><button className="icon-button" aria-label="Видеозвонок · демо" onClick={()=>setCallMode('video')}><Video size={18}/></button><button className="icon-button" aria-label="Меню чата" onClick={()=>setChatMenu(true)}><MoreHorizontal size={20}/></button>
           </div>
-          <div className="history-pill"><LockKeyhole size={13} /> Начало вашей истории в NEXUS</div>
-          <div className="message-day">СЕГОДНЯ</div>
-          <div className="message-line"><div className="bubble bubble-in">Привет! Как продвигается NEXUS?<time>12:32</time></div></div>
-          <div className="message-line mine"><div className="bubble bubble-out">Отлично! Сейчас собираем основу интерфейса.<time>12:34 <CheckCheck size={12} /></time></div></div>
-          <div className="message-line"><div className="bubble bubble-in">Классно. Уже не терпится попробовать!<time>12:36</time></div></div>
-          {sentMessages.map((item, i) => <div className="message-line mine" key={i}><div className="bubble bubble-out">{item==='__VOICE__'?<div className="voice-demo"><button onClick={()=>setVoicePlaying(!voicePlaying)}>{voicePlaying?<Pause size={16}/>:<Play size={16}/>}</button><b>Голосовое сообщение</b><span>▂▅▃▇▅▂▆▃▅▇</span><small>0:12</small></div>:item}<time>сейчас <Check size={12}/></time></div></div>)}
+          <div className="message-day">Сегодня</div>
+          {['Привет! Как продвигается NEXUS?','Отлично! Сейчас собираем основу интерфейса.','Классно. Уже не терпится попробовать!',...sentMessages].map((item,i)=><div key={i} className={`message-line ${i===1||i>=3?'mine':''}`} onContextMenu={e=>{e.preventDefault();setMessageMenu(i)}}><div className={`bubble ${i===1||i>=3?'bubble-out':'bubble-in'}`} onDoubleClick={()=>setReaction(p=>({...p,[i]:'❤️'}))}>{item==='__VOICE__'?<div className="voice-demo"><button onClick={()=>setVoicePlaying(!voicePlaying)}>{voicePlaying?<Pause size={16}/>:<Play size={16}/>}</button><b>Голосовое сообщение</b><span>▂▅▃▇▅▂▆▃▅▇</span><small>0:12</small></div>:item}<time>{i<3?['12:32','12:34','12:36'][i]:'сейчас'} {i===1||i>=3?<CheckCheck size={12}/>:null}</time>{reaction[i]&&<span className="message-reaction">{reaction[i]}</span>}</div>{messageMenu===i&&<div className="message-context"><button onClick={()=>{setReplyTo(item);setMessageMenu(null)}}>Ответить</button><button onClick={()=>{navigator.clipboard?.writeText(item);setMessageMenu(null)}}>Копировать</button><button onClick={()=>{setMessage(item);setMessageMenu(null)}}>Изменить</button><button onClick={()=>setMessageMenu(null)}>Закрыть</button></div>}</div>)}
           <div className="conversation-spacer" />
-          <div className="composer"><button className="icon-button"><Paperclip size={19}/></button><input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()} placeholder="Написать сообщение..."/><button className="icon-button" onClick={sendVoice} aria-label="Голосовое демо"><Mic size={18}/></button><button className="send-button" onClick={sendMessage}><Send size={17}/></button></div>
+          {replyTo&&<div className="reply-preview"><span>Ответ: {replyTo}</span><button onClick={()=>setReplyTo('')}><X size={14}/></button></div>}
+          <div className="composer"><button className="icon-button" aria-label="Эмодзи" onClick={()=>setEmojiOpen(v=>!v)}>☺</button><button className="icon-button" aria-label="Прикрепить"><Paperclip size={18}/></button><input value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()} placeholder="Написать сообщение..."/><button className="send-button" onClick={message.trim()?sendMessage:sendVoice} aria-label={message.trim()?'Отправить':'Голосовое сообщение'}>{message.trim()?<Send size={17}/>:<Mic size={18}/>}</button></div>{emojiOpen&&<div className="emoji-tray">{['😀','😂','❤️','🔥','👍','✨','🥹','👀'].map(e=><button key={e} onClick={()=>setMessage(p=>p+e)}>{e}</button>)}</div>}
           {showImport && <div className="modal-backdrop" onClick={() => setShowImport(false)}><div className="modal-card" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowImport(false)}><X size={18} /></button><div className="modal-icon"><Archive size={22} /></div><span className="eyebrow">NEXUS HISTORY</span><h2>Импорт переписки</h2><p>Выберите экспортированный архив Telegram, WhatsApp или другого поддерживаемого мессенджера. Это демонстрация интерфейса — обработка архивов появится на следующем этапе.</p>
             <label className="upload-zone"><FileImage size={23} /><b>{fileName || 'Выберите архив переписки'}</b><span>ZIP, JSON или TXT · предварительный просмотр будет добавлен позже</span><input type="file" accept=".zip,.json,.txt" onChange={e => setFileName(e.target.files?.[0]?.name || '')} /></label>
