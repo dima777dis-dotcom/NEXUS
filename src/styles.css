@@ -208,3 +208,18 @@ body{background:#080d17}
  .profile-stats{gap:34px}
  .friend-profile-page{padding-bottom:24px}
 }
+
+
+/* Final monochrome icon pass */
+.theme-black .sidebar svg,.theme-black .mobile-nav svg,.theme-black .setting-row svg,
+.theme-black .settings-group svg,.theme-black .settings-profile svg,.theme-black .composer svg,
+.theme-black .ai-input svg,.theme-black .outline-button svg,.theme-black .modal-card svg,
+.theme-black .profile-card svg{color:#111!important;stroke:#111}
+.theme-black .setting-row,.theme-black .settings-profile,.theme-black .sidebar,
+.theme-black .mobile-nav,.theme-black .composer,.theme-black .ai-chat-card,
+.theme-black .modal-card,.theme-black .profile-card{color:#111}
+.theme-black .setting-row b,.theme-black .setting-row span,
+.theme-black .settings-profile b,.theme-black .settings-profile span{color:#111}
+.theme-black .mobile-nav-button.active svg,.theme-black .nav-button.active svg{color:#111!important;stroke:#111}
+.theme-black .topbar svg,.theme-black .chat-row svg{color:#fff;stroke:#fff}
+.theme-black .primary-button svg,.theme-black .send-button svg{color:#fff;stroke:#fff}
