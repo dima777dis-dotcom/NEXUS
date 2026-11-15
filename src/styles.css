@@ -477,3 +477,21 @@ body{background:#080d17}
     flex:0 0 auto!important;
   }
 }
+
+
+/* Anchor the composer to the bottom of the available chat viewport */
+@media(max-width:640px){
+  .app.conversation-open .conversation{
+    min-height:var(--nexus-visible-height,100dvh)!important;
+    height:var(--nexus-visible-height,100dvh)!important;
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .app.conversation-open .composer{
+    margin-top:auto!important;
+    position:sticky!important;
+    bottom:10px!important;
+    flex-shrink:0!important;
+  }
+}
