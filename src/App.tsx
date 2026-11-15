@@ -50,9 +50,9 @@ function App() {
     try { return JSON.parse(localStorage.getItem('nexus-demo-messages') || '{}') } catch { return {} }
   })
   const sentMessages = activeChat ? (messagesByChat[activeChat.id] || []) : []
-  const [theme, setTheme] = useState<'dark' | 'light' | 'graphite'>(() => {
+  const [theme, setTheme] = useState<'dark' | 'light' | 'black'>(() => {
     const saved = localStorage.getItem('nexus-demo-theme')
-    return saved === 'light' || saved === 'graphite' ? saved : 'dark'
+    return saved === 'light' || saved === 'black' ? saved : 'dark'
   })
   const [subscriptions, setSubscriptions] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('nexus-demo-subscriptions') || '[]') } catch { return [] }
@@ -181,7 +181,7 @@ function App() {
 
         {tab === 'settings' && <section className="content-area">
           <div className="settings-profile"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div><b>Ваш профиль</b><span>@yourname</span></div><button className="outline-button">Изменить</button></div>
-          <div className="settings-group"><span className="side-label">ВНЕШНИЙ ВИД</span><div className="setting-row"><div className="setting-icon"><Sparkles size={18} /></div><div><b>Тема оформления</b><span>Выберите настроение NEXUS</span></div><select value={theme} onChange={e => setTheme(e.target.value as typeof theme)}><option value="dark">Тёмная</option><option value="light">Светлая</option><option value="graphite">Графитовая</option></select></div></div>
+          <div className="settings-group"><span className="side-label">ВНЕШНИЙ ВИД</span><div className="setting-row"><div className="setting-icon"><Sparkles size={18} /></div><div><b>Тема оформления</b><span>Выберите настроение NEXUS</span></div><select value={theme} onChange={e => setTheme(e.target.value as typeof theme)}><option value="dark">Тёмная</option><option value="light">Светлая</option><option value="black">Чёрная · белые сообщения</option></select></div></div>
           <div className="settings-group"><span className="side-label">ПРИВАТНОСТЬ И БЕЗОПАСНОСТЬ</span><SettingRow icon={<ShieldCheck />} title="Приватность" desc="Кто видит вашу информацию" /><SettingRow icon={<LockKeyhole />} title="Безопасность" desc="Устройства и активные сессии" /><SettingRow icon={<Bell />} title="Уведомления" desc="Звуки и оповещения" /></div>
           <div className="settings-group"><span className="side-label">ПОДДЕРЖКА</span><SettingRow icon={<CircleHelp />} title="Помощь" desc="Ответы на частые вопросы" /></div>
         </section>}
