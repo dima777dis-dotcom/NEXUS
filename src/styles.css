@@ -336,3 +336,21 @@ body{background:#080d17}
 
 /* Scripted chat demo interactions */
 .action-row{width:100%;display:flex;align-items:center;gap:13px;padding:15px 8px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;font-size:13px}.action-row svg{width:18px;height:18px;color:var(--muted)}.action-row span{margin-left:auto;color:var(--muted)}.action-row.danger{color:#ff7777}.action-row.danger svg{color:#ff7777}.report-select{width:100%;height:44px;margin:14px 0 18px;padding:0 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;color:var(--text)}.voice-demo{display:flex;align-items:center;gap:10px;min-width:190px}.voice-demo button{width:32px;height:32px;border:0;border-radius:50%;background:#347ee8;color:white;display:grid;place-items:center}.voice-demo b{display:block;font-size:11px}.voice-demo span{display:block;color:#b8d4f7;letter-spacing:2px;font-size:11px}.voice-demo small{font-size:9px;color:#b8d4f7}.avatar-upload{display:inline-block;position:relative;cursor:pointer}.avatar-upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.avatar-upload img{width:76px;height:76px;object-fit:cover;border-radius:24px;border:4px solid var(--panel)}.profile-details{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:13px 0;font-size:11px}.profile-details span{color:var(--muted)}.profile-details b{font-weight:600}.call-demo{text-align:center}.call-demo .modal-icon{margin:0 auto 16px}.call-demo p{margin:10px 0 20px}.call-demo .primary-button{background:#e34f5f}.chat-actions h2{margin:5px 0 14px}.voice-send{color:#7eb4ff}
+
+
+/* Confirmation dialogs and blocked contacts manager */
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.confirm-actions .outline-button,.confirm-actions .primary-button{min-height:42px;padding:0 16px}
+.confirm-actions .primary-button{border:0;color:#fff}
+.blocked-manager{margin-top:18px}
+.blocked-manager>.outline-button{display:inline-flex;align-items:center;gap:8px}
+.blocked-list{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:8px 14px}
+.blocked-list>p{font-size:12px;color:var(--muted)}
+.blocked-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.blocked-row:last-child{border-bottom:0}
+.blocked-row>div:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.blocked-row b{font-size:12px;color:var(--text)}
+.blocked-row span{font-size:10px;color:var(--muted)}
+.blocked-row .outline-button{white-space:nowrap;padding:8px 11px;font-size:11px}
+.theme-black .confirm-actions .outline-button{background:#111;color:#fff;border-color:#333}
+@media(max-width:520px){.confirm-actions{flex-direction:column-reverse}.confirm-actions button{width:100%}.blocked-row{gap:8px}.blocked-row .outline-button{padding:7px 8px;font-size:10px}}
