@@ -46,7 +46,7 @@ export default function AuthGate() {
     setBusy(true); setError(''); setNotice('')
     try {
       const cleanEmail = email.trim().toLowerCase()
-      if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(cleanEmail)) throw new Error('Введите корректный адрес электронной почты.')
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Введите корректный адрес электронной почты.')
       if (!isLogin && !/^\+[1-9]\d{7,14}$/.test(phone.trim().replace(/[\s()-]/g, ''))) throw new Error('Введите номер в международном формате, например +79991234567.')
       setEmail(cleanEmail)
       setStep('code')
