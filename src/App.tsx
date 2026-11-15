@@ -46,6 +46,22 @@ function Avatar({ name, color, initials, online, size = 'normal' }: { name: stri
 }
 
 function App() {
+  useEffect(() => {
+    const viewport = window.visualViewport
+    const updateViewport = () => {
+      const height = viewport?.height ?? window.innerHeight
+      document.documentElement.style.setProperty('--nexus-visible-height', height + 'px')
+    }
+    updateViewport()
+    viewport?.addEventListener('resize', updateViewport)
+    viewport?.addEventListener('scroll', updateViewport)
+    window.addEventListener('resize', updateViewport)
+    return () => {
+      viewport?.removeEventListener('resize', updateViewport)
+      viewport?.removeEventListener('scroll', updateViewport)
+      window.removeEventListener('resize', updateViewport)
+    }
+  }, [])
   const [tab, setTab] = useState<Tab>('chats')
   const [chatList,setChatList] = useState<Chat[]>(()=>{try{return JSON.parse(localStorage.getItem('nexus-demo-chats')||'null')||initialChats}catch{return initialChats}})
   const [activeChat, setActiveChat] = useState<Chat | null>(null)
