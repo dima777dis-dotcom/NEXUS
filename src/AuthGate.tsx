@@ -46,8 +46,8 @@ export default function AuthGate() {
     setBusy(true); setError(''); setNotice('')
     try {
       const cleanEmail = email.trim().toLowerCase()
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) throw new Error('Введите корректный адрес электронной почты.')
-      if (!isLogin && !/^\\+[1-9]\\d{7,14}$/.test(phone.trim().replace(/[\\s()-]/g, ''))) throw new Error('Введите номер в международном формате, например +79991234567.')
+      if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(cleanEmail)) throw new Error('Введите корректный адрес электронной почты.')
+      if (!isLogin && !/^\+[1-9]\d{7,14}$/.test(phone.trim().replace(/[\s()-]/g, ''))) throw new Error('Введите номер в международном формате, например +79991234567.')
       setEmail(cleanEmail)
       setStep('code')
       setNotice('Демо-режим: используйте код 12345. Письмо отправлять не нужно.')
@@ -59,7 +59,7 @@ export default function AuthGate() {
     event.preventDefault()
     setBusy(true); setError(''); setNotice('')
     try {
-      if (code.replace(/\\D/g, '') !== '12345') throw new Error('Неверный код. Для демо используйте 12345.')
+      if (code.replace(/\D/g, '') !== '12345') throw new Error('Неверный код. Для демо используйте 12345.')
       if (isLogin) {
         const saved = localStorage.getItem('nexus_demo_profile')
         if (!saved) throw new Error('Аккаунт не найден на этом устройстве. Сначала зарегистрируйтесь.')
