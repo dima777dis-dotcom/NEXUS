@@ -68,6 +68,8 @@ function App() {
   const [viewingFriend, setViewingFriend] = useState<Chat | null>(null)
   const [ownProfile] = useState<any>(() => { try { return JSON.parse(localStorage.getItem('nexus_demo_profile') || 'null') } catch { return null } })
   const [query, setQuery] = useState('')
+  const [chatFilter, setChatFilter] = useState<'all'|'unread'>('all')
+  const [pinnedChats, setPinnedChats] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-pinned') || '[]') } catch { return [] } })
   const [message, setMessage] = useState('')
   const [emojiOpen,setEmojiOpen]=useState(false)
   const [replyTo,setReplyTo]=useState('')
@@ -110,13 +112,16 @@ function App() {
   useEffect(() => { localStorage.setItem('nexus-demo-messages', JSON.stringify(messagesByChat)) }, [messagesByChat])
   useEffect(()=>{localStorage.setItem('nexus-demo-chats',JSON.stringify(chatList))},[chatList])
   useEffect(() => { localStorage.setItem('nexus-demo-theme', theme) }, [theme])
+  useEffect(() => { localStorage.setItem('nexus-demo-pinned', JSON.stringify(pinnedChats)) }, [pinnedChats])
   useEffect(() => { localStorage.setItem('nexus-demo-subscriptions', JSON.stringify(subscriptions)) }, [subscriptions])
   useEffect(() => { localStorage.setItem('nexus-demo-custom-channels', JSON.stringify(customChannels)) }, [customChannels])
   useEffect(() => { localStorage.setItem('nexus-demo-settings', JSON.stringify(settingsFlags)) }, [settingsFlags])
 
   const filteredChats = useMemo(() => chatList.filter(chat => !chat.blocked &&
-    (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase())
-  ), [query, chatList])
+    (chat.name + chat.message + chat.handle).toLowerCase().includes(query.toLowerCase()) &&
+    (chatFilter === 'all' || Boolean(chat.unread))
+  ).sort((a,b) => Number(pinnedChats.includes(b.id))-Number(pinnedChats.includes(a.id))), [query, chatList, chatFilter, pinnedChats])
+  const togglePinnedChat = (id:number) => setPinnedChats(prev => prev.includes(id) ? prev.filter(x=>x!==id) : [...prev,id])
 
   const sendMessage = () => {
     if (!message.trim()) return
@@ -188,12 +193,15 @@ function App() {
             <div className="banner-glow" />
           </div>
           <div className="section-heading"><div><h2>Ваши чаты</h2><p>Недавние переписки</p></div><button className="primary-button small" onClick={() => setDialog('new-chat')}><Plus size={16} /> Новый чат</button></div>
+          <div className="chat-filters"><button className={chatFilter==='all'?'active':''} onClick={()=>setChatFilter('all')}>Все</button><button className={chatFilter==='unread'?'active':''} onClick={()=>setChatFilter('unread')}>Непрочитанные</button><span>{filteredChats.length} чатов</span></div>
           <div className="chat-list">
-            {filteredChats.map(chat => <button className="chat-row" key={chat.id} onClick={() => { setActiveChat(chat) }}>
-              <Avatar name={chat.name} initials={chat.initials} color={chat.color} online={chat.online} />
-              <div className="chat-info"><div className="chat-name">{chat.name}{chat.verified && <span className="verified"><Check size={11} /></span>}</div><p>{chat.message}</p></div>
-              <div className="chat-meta"><time>{chat.time}</time>{chat.unread && <span className="unread">{chat.unread}</span>}</div>
-            </button>)}
+            {filteredChats.length===0 ? <div className="empty-chats">Здесь пока нет чатов</div> : filteredChats.map(chat => <div className="chat-row-wrap" key={chat.id}>
+              <button className="chat-row" onClick={() => { setActiveChat(chat); setChatList(prev=>prev.map(x=>x.id===chat.id?{...x,unread:0}:x)) }}>
+                <Avatar name={chat.name} initials={chat.initials} color={chat.color} online={chat.online} />
+                <div className="chat-info"><div className="chat-name">{chat.name}{chat.verified && <span className="verified"><Check size={11} /></span>}{pinnedChats.includes(chat.id)&&<span className="pinned-label">ЗАКРЕПЛЁН</span>}</div><p>{chat.message}</p></div>
+                <div className="chat-meta"><time>{chat.time}</time>{chat.unread ? <span className="unread">{chat.unread}</span> : null}</div>
+              </button><button className={pinnedChats.includes(chat.id)?'pin-chat active':'pin-chat'} aria-label={pinnedChats.includes(chat.id)?'Открепить чат':'Закрепить чат'} onClick={()=>togglePinnedChat(chat.id)}><Archive size={15}/></button>
+            </div>)}
           </div>
           <div className="blocked-manager"><button className="outline-button" onClick={()=>setShowBlocked(v=>!v)}><Ban size={15}/> {showBlocked?'Скрыть заблокированные':'Заблокированные контакты'} · {chatList.filter(c=>c.blocked).length}</button>{showBlocked && <div className="blocked-list">{chatList.filter(c=>c.blocked).length===0?<p>Заблокированных контактов пока нет.</p>:chatList.filter(c=>c.blocked).map(c=><div className="blocked-row" key={c.id}><Avatar name={c.name} initials={c.initials} color={c.color}/><div><b>{c.name}</b><span>{c.handle}</span></div><button className="outline-button" onClick={()=>unblockChat(c.id)}>Разблокировать</button></div>)}</div>}</div>
         </section>}
