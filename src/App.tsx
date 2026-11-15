@@ -44,6 +44,8 @@ function Avatar({ name, color, initials, online, size = 'normal' }: { name: stri
 function App() {
   const [tab, setTab] = useState<Tab>('chats')
   const [activeChat, setActiveChat] = useState<Chat | null>(null)
+  const [viewingFriend, setViewingFriend] = useState<Chat | null>(null)
+  const [ownProfile] = useState<any>(() => { try { return JSON.parse(localStorage.getItem('nexus_demo_profile') || 'null') } catch { return null } })
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
   const [messagesByChat, setMessagesByChat] = useState<Record<number, string[]>>(() => {
@@ -89,7 +91,7 @@ function App() {
     setAiPrompt('')
   }
 
-  const title = tab === 'chats' ? 'Сообщения' : tab === 'channels' ? 'Каналы' : tab === 'ai' ? 'NEXUS AI' : tab === 'settings' ? 'Настройки' : 'Профиль'
+  const title = viewingFriend ? viewingFriend.name : tab === 'chats' ? 'Сообщения' : tab === 'channels' ? 'Каналы' : tab === 'ai' ? 'NEXUS AI' : tab === 'settings' ? 'Настройки' : 'Профиль'
 
   return (
     <div className={`app theme-${theme}`}>
@@ -119,7 +121,7 @@ function App() {
 
       <main className="main-panel">
         <header className="topbar">
-          <div><div className="eyebrow">YOUR WORLD. YOUR CONNECTION.</div><h1>{activeChat ? activeChat.name : title}</h1></div>
+          <div><div className="eyebrow">YOUR WORLD. YOUR CONNECTION.</div><h1>{activeChat && !viewingFriend ? activeChat.name : title}</h1></div>
           <div className="top-actions">
             <button className="icon-button" aria-label="Поиск"><Search size={19} /></button>
             <button className="icon-button" aria-label="Помощь"><CircleHelp size={19} /></button>
@@ -143,11 +145,13 @@ function App() {
           </div>
         </section>}
 
-        {tab === 'chats' && activeChat && <section className="conversation">
+        {viewingFriend && <section className="content-area friend-profile-page"><button className="profile-back" onClick={() => setViewingFriend(null)}><ArrowLeft size={17}/> Назад к чату</button><div className="profile-cover"><div className="profile-cover-glow" /></div><div className="profile-card friend-profile-card"><Avatar name={viewingFriend.name} initials={viewingFriend.initials} color={viewingFriend.color} online={viewingFriend.online} size="large" /><div className="profile-title"><h2>{viewingFriend.name}</h2><span>{viewingFriend.handle}</span></div><p>{viewingFriend.online ? 'Сейчас в сети' : 'Пользователь NEXUS'}</p><div className="profile-stats"><div><b>1</b><span>Общий чат</span></div><div><b>2026</b><span>В NEXUS</span></div></div><button className="primary-button full friend-message-button" onClick={() => setViewingFriend(null)}>Написать сообщение</button></div></section>}
+
+        {tab === 'chats' && activeChat && !viewingFriend && <section className="conversation">
           <div className="conversation-head">
             <button className="back-button" onClick={() => setActiveChat(null)}><ArrowLeft size={19} /></button>
             <Avatar name={activeChat.name} initials={activeChat.initials} color={activeChat.color} online={activeChat.online} />
-            <div className="conversation-person"><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : activeChat.handle}</span></div>
+            <button className="conversation-person profile-open-button" onClick={() => setViewingFriend(activeChat)}><b>{activeChat.name}</b><span>{activeChat.online ? 'в сети' : activeChat.handle}</span></button>
             <button className="icon-button" aria-label="Аудиозвонок"><Phone size={18} /></button>
             <button className="icon-button" aria-label="Видеозвонок"><Video size={18} /></button>
             <button className="icon-button" aria-label="Настройки чата" onClick={() => setShowImport(true)}><MoreHorizontal size={20} /></button>
@@ -188,7 +192,7 @@ function App() {
 
         {tab === 'profile' && <section className="content-area">
           <div className="profile-cover"><div className="profile-cover-glow" /></div>
-          <div className="profile-card"><Avatar name="Ваш профиль" initials="D" color="blue" size="large" /><div className="profile-title"><h2>Ваш профиль</h2><span>@yourname</span></div><button className="outline-button">Редактировать</button><p>Здесь будет ваша история, интересы и цифровая идентичность.</p><div className="profile-stats"><div><b>6</b><span>Чатов</span></div><div><b>3</b><span>Канала</span></div><div><b>2026</b><span>С NEXUS</span></div></div></div>
+          <div className="profile-card own-profile-card"><Avatar name="Ваш профиль" initials={(ownProfile?.displayName || "D").slice(0,1).toUpperCase()} color="blue" size="large" /><div className="profile-title"><h2>{ownProfile?.displayName || "Ваш профиль"}</h2><span>@{ownProfile?.username || "yourname"}</span></div><button className="outline-button">Редактировать</button><p>{ownProfile?.bio || "Добавьте описание, чтобы друзья могли узнать вас поближе."}</p><div className="profile-stats"><div><b>6</b><span>Чатов</span></div><div><b>3</b><span>Канала</span></div><div><b>2026</b><span>С NEXUS</span></div></div></div>
         </section>}
       </main>
 
