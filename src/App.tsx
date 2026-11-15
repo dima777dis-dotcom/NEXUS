@@ -130,7 +130,7 @@ function App() {
   const title = viewingFriend ? viewingFriend.name : tab === 'chats' ? 'Сообщения' : tab === 'channels' ? 'Каналы' : tab === 'ai' ? 'NEXUS AI' : tab === 'settings' ? 'Настройки' : 'Профиль'
 
   return (
-    <div className={`app theme-${theme}`}>
+    <div className={`app theme-${theme} ${activeChat && !viewingFriend ? "conversation-open" : ""}`}>
       <aside className="sidebar">
         <div className="brand-row">
           <div className="brand-mark">N</div>
