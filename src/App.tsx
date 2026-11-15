@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Archive, ArrowLeft, Bell, Check, CheckCheck, ChevronDown,
-  ChevronRight, CircleHelp, Compass, FileImage, Hash, LockKeyhole,
+  ChevronRight, CircleHelp, Compass, FileImage, Hash,
   MessageCircle, MoreHorizontal, Paperclip, Phone, Plus, Search, Send, Mic, Heart, Ban, Flag, Trash2, Play, Pause,
   Settings, ShieldCheck, Sparkles, Users, Video, X, UserPlus, Camera, BellRing, Globe
 } from 'lucide-react'
