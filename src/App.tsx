@@ -104,6 +104,7 @@ function App() {
   const [profilePhone,setProfilePhone]=useState(ownProfile?.phone||'')
   const [channelName, setChannelName] = useState('')
   const [channelDescription, setChannelDescription] = useState('')
+  const [selectedChannel, setSelectedChannel] = useState<any|null>(null)
   const [customChannels, setCustomChannels] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-custom-channels') || '[]') } catch { return [] } })
   const [settingsFlags, setSettingsFlags] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem('nexus-demo-settings') || '{"push":true,"sound":true,"phone":false,"read":true}') } catch { return {push:true,sound:true,phone:false,read:true} } })
   const [aiPrompt, setAiPrompt] = useState('')
@@ -228,9 +229,15 @@ function App() {
         </section>}
 
         {tab === 'channels' && <section className="content-area">
+          {selectedChannel ? <div className="channel-detail">
+            <button className="profile-back" onClick={()=>setSelectedChannel(null)}><ArrowLeft size={17}/> Все каналы</button>
+            <div className="channel-detail-hero"><Avatar name={selectedChannel.name} initials={selectedChannel.initials} color={selectedChannel.color} size="large"/><div><h2>{selectedChannel.name}</h2><span>{selectedChannel.tag} · {selectedChannel.count} подписчиков</span></div><button className="primary-button small" onClick={()=>setSubscriptions(prev=>prev.includes(selectedChannel.tag)?prev.filter(x=>x!==selectedChannel.tag):[...prev,selectedChannel.tag])}>{subscriptions.includes(selectedChannel.tag)?'Вы подписаны':'Подписаться'}</button></div>
+            <div className="channel-post"><div className="channel-post-head"><b>{selectedChannel.name}</b><time>Сегодня · 12:40</time></div><p>{selectedChannel.desc}. Добро пожаловать в канал! Здесь будут появляться новости, полезные материалы и обновления.</p><div className="channel-post-foot"><span>♡ 24</span><span>◷ 2 мин. чтения</span></div></div>
+            <div className="channel-post"><div className="channel-post-head"><b>Закреплённая публикация</b><time>Вчера · 18:20</time></div><p>Это демонстрационная публикация NEXUS. В реальной версии авторы смогут делиться текстом, фотографиями и файлами.</p><div className="channel-post-foot"><span>♡ 18</span><span>Комментарии · демо</span></div></div>
+          </div> : <>
           <div className="section-heading"><div><h2>Открывайте новое</h2><p>Каналы по вашим интересам</p></div><button className="primary-button small" onClick={() => setDialog('create-channel')}><Plus size={16} /> Создать</button></div>
           <div className="channel-feature"><div className="feature-icon"><Hash size={25} /></div><div><span className="eyebrow">NEXUS CHANNELS</span><h2>Ваши идеи находят аудиторию.</h2><p>Подписывайтесь на интересное и делитесь своим.</p></div></div>
-          <div className="channel-list">{[...channels, ...customChannels].map(channel => <div className="channel-row" key={channel.tag}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><div className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></div><button className="outline-button" onClick={() => setSubscriptions(prev => prev.includes(channel.tag) ? prev.filter(x => x !== channel.tag) : [...prev, channel.tag])}>{subscriptions.includes(channel.tag) ? 'Вы подписаны' : 'Подписаться'}</button></div>)}</div>
+          <div className="channel-list">{[...channels, ...customChannels].map(channel => <div className="channel-row" key={channel.tag}><button className="channel-open" onClick={()=>setSelectedChannel(channel)}><Avatar name={channel.name} initials={channel.initials} color={channel.color} /><span className="channel-info"><b>{channel.name}</b><span>{channel.desc}</span><small>{channel.count} подписчиков</small></span></button><button className="outline-button" onClick={() => setSubscriptions(prev => prev.includes(channel.tag) ? prev.filter(x => x !== channel.tag) : [...prev, channel.tag])}>{subscriptions.includes(channel.tag) ? 'Вы подписаны' : 'Подписаться'}</button></div>)}</div></>}
         </section>}
 
         {tab === 'ai' && <section className="content-area ai-area">
