@@ -522,3 +522,17 @@ body{background:#080d17}
 .pinned-label{font-size:9px;letter-spacing:.06em;color:#75adff;margin-left:7px;font-weight:700}
 .empty-chats{padding:28px 16px;text-align:center;color:var(--muted)}
 @media(max-width:640px){.chat-filters{margin-top:2px}.chat-row-wrap .chat-row{padding-right:4px}.pin-chat{margin-right:4px}}
+
+
+/* Profile finishing pass */
+.profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.profile-actions .outline-button{flex:1;min-width:145px;justify-content:center}
+.own-profile-card .profile-details{margin-top:18px}
+.own-profile-card .profile-stats{margin-top:20px}
+.settings-profile{gap:14px}
+.settings-profile>div:nth-child(2){min-width:0;flex:1}
+.settings-profile>div:nth-child(2) b,.settings-profile>div:nth-child(2) span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){
+ .profile-actions{display:grid;grid-template-columns:1fr 1fr}
+ .profile-actions .outline-button{min-width:0;padding:10px 8px;font-size:12px}
+}
