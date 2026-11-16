@@ -536,3 +536,20 @@ body{background:#080d17}
  .profile-actions{display:grid;grid-template-columns:1fr 1fr}
  .profile-actions .outline-button{min-width:0;padding:10px 8px;font-size:12px}
 }
+
+
+/* Channel pages */
+.channel-open{display:flex;align-items:center;gap:12px;min-width:0;flex:1;text-align:left;border:0;background:transparent;color:inherit;padding:0}
+.channel-open .channel-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.channel-open .channel-info b,.channel-open .channel-info span{overflow:hidden;text-overflow:ellipsis}
+.channel-detail{display:flex;flex-direction:column;gap:16px}
+.channel-detail-hero{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+.channel-detail-hero>div:nth-child(2){flex:1;min-width:0}
+.channel-detail-hero h2{margin:0 0 5px;font-size:20px}
+.channel-detail-hero span{color:var(--muted);font-size:12px}
+.channel-post{padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.channel-post-head,.channel-post-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.channel-post-head time,.channel-post-foot{font-size:12px;color:var(--muted)}
+.channel-post p{line-height:1.55;margin:14px 0}
+.channel-post-foot{padding-top:12px;border-top:1px solid var(--line)}
+@media(max-width:640px){.channel-detail-hero{flex-wrap:wrap}.channel-detail-hero>.primary-button{width:100%}.channel-post{padding:15px}}
